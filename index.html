@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>奇美 AI 智能選課</title>
+<title>奇美 AI 培訓 — 智能選課</title>
 <style>
 :root { color-scheme: light; }
 * { box-sizing: border-box; }
@@ -219,7 +219,7 @@ button.ghost:hover { border-color: #fb923c; color: #c2410c; }
 <body>
 <div class="wrap">
   <header class="hero">
-    <h1>奇美醫院 AI 培訓 · 智能選課顧問</h1>
+    <h1>奇美醫院 AI 培訓 · 智能選課</h1>
     <p>填寫資料、回答 6 個問題，獲得個人化推薦並送出報名意願</p>
   </header>
 
@@ -567,19 +567,36 @@ function renderResult() {
     }).join("")}
 
     <div class="enroll-bar">
-      <div class="count">已勾選 <b id="cnt">${state.enrollments.size}</b> 門想報名的課程</div>
+      <div class="count" id="cntText">尚未選擇課程</div>
       <button class="ghost" id="back">← 修改</button>
       <button class="primary" id="submit">勾選後前往填寫報名表 →</button>
     </div>
   `;
 
+  // 單選模式：勾選一門時自動取消其他
   app.querySelectorAll('input[type=checkbox][data-id]').forEach(cb => {
     cb.addEventListener('change', e => {
       const id = e.target.dataset.id;
-      const track = e.target.closest('.track');
-      if (e.target.checked) { state.enrollments.add(id); track.classList.add('checked'); }
-      else { state.enrollments.delete(id); track.classList.remove('checked'); }
-      document.getElementById('cnt').textContent = state.enrollments.size;
+      if (e.target.checked) {
+        state.enrollments.clear();
+        state.enrollments.add(id);
+        // 取消其他已勾選的課程
+        app.querySelectorAll('input[type=checkbox][data-id]').forEach(other => {
+          if (other.dataset.id !== id) {
+            other.checked = false;
+            other.closest('.track').classList.remove('checked');
+          }
+        });
+        e.target.closest('.track').classList.add('checked');
+      } else {
+        state.enrollments.delete(id);
+        e.target.closest('.track').classList.remove('checked');
+      }
+      const cnt = state.enrollments.size;
+      const txt = document.getElementById('cntText');
+      txt.innerHTML = cnt === 0
+        ? '尚未選擇課程'
+        : `已選擇：<b style="color:#c2410c">${[...state.enrollments].map(id => recs.find(r=>r.id===id).code).join('')}</b>`;
     });
   });
   document.getElementById('back').addEventListener('click', () => { state.step--; render(); });
