@@ -289,7 +289,7 @@ button.ghost:hover { border-color: #fb923c; color: #c2410c; }
   <div id="app" class="card"></div>
 
   <div class="foot">
-    製作：深耕計畫辦公室、AI Everywhere 小組 <strong>53710</strong>
+    製作：深耕計畫辦公室、AI Everywhere 小組 <strong></strong>
   </div>
 </div>
 
@@ -344,8 +344,8 @@ const Q = [
     ]},
   { key:"level", title:"您目前對生成式 AI 工具的熟悉度？", opts:[
       { v:"none",  label:"入門（從未使用，或只試過 1–2 次）" },
-      { v:"some",  label:"基礎（會打字問問題、請 AI 改寫文字，主要用網頁版）" },
-      { v:"often", label:"熟練（會用 prompt 技巧、能把 AI 串到日常工作流，例如 Copilot in Word）" },
+      { v:"some",  label:"基礎（會打字問問題、請 AI 改寫文字、圖片）" },
+      { v:"often", label:"熟練（會用 prompt 技巧、能把 AI 串到日常工作流）" },
       { v:"power", label:"進階（會自建 GPTs / Agent / RAG 系統，能判斷模型限制與準確度）" }
     ]},
   { key:"freq", title:"您每週使用 AI 工具的頻率？", opts:[
@@ -465,7 +465,7 @@ function renderIntro() {
     <div class="field">
       <label for="empId">人事號 <span style="color:#ef4444">*</span></label>
       <input type="text" id="empId" value="${escapeAttr(state.info.empId)}" placeholder="請輸入您的人事號">
-      <div class="hint">用於後續報名意願統計與通知</div>
+      <div class="hint">用於後續報名意願統計使用</div>
     </div>
     <div class="nav">
       <span></span>
@@ -668,7 +668,7 @@ function renderResult() {
   let emptyReason = "";
   if (recs.length === 0) {
     if (a.time === "min") {
-      emptyReason = "您每月可投入學習時間較少（< 4 小時／月），目前院內課程最短也需 3–4 小時，故本次暫不推薦。建議先從下方「免費線上課程」開始累積基礎，下一梯次有更多時間時歡迎參加。";
+      emptyReason = "您每月可投入學習時間較少（< 4 小時／月），目前院內課程最短也需 3–4 小時，故本次暫不推薦。建議可從下方「免費線上課程」學習，下一梯次有更多時間時歡迎參加。";
     } else if (a.tool === "other" && !isGAITool(state.toolOther)) {
       emptyReason = `您填寫的工具「${escapeHtml(state.toolOther)}」非屬本次課程項目，故本次暫不推薦。`;
     }
