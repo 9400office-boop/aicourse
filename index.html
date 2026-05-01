@@ -638,7 +638,7 @@ function renderResult() {
   let emptyReason = "";
   if (recs.length === 0) {
     if (a.time === "min") {
-      emptyReason = "您每月可投入學習時間較少（< 4 小時／月），目前院內課程最短也需 3–4 小時，故本批暫不推薦。建議先從下方「免費線上課程」開始累積基礎，下一梯次有更多時間時歡迎報名。";
+      emptyReason = "您每月可投入學習時間較少（< 4 小時／月），目前院內課程最短也需 3–4 小時，故本次暫不推薦。建議先從下方「免費線上課程」開始累積基礎，下一梯次有更多時間時歡迎報名。";
     } else if (a.tool === "other" && !isGAITool(state.toolOther)) {
       emptyReason = `您填寫的工具「${escapeHtml(state.toolOther)}」非此次開課項目，故本次暫不推薦。`;
     }
@@ -702,7 +702,7 @@ function renderResult() {
         <span class="online-icon">🎓</span>
         <div>
           <div class="online-title">免費線上課程</div>
-          <div class="online-sub">不限職類、不限時間，隨時可開始的自學資源</div>
+          <div class="online-sub">不限職類、不限時間，隨時可開始的學習資源</div>
         </div>
       </div>
       <div class="online-list">
@@ -832,14 +832,14 @@ function renderThanks() {
       ` : `
         <div class="enroll-cta" style="background:#f5f5f5;border-color:#d4d4d4;">
           <h3 style="color:#525252;">您本次未勾選任何想報名的課程</h3>
-          <p>若日後改變心意，可隨時點擊下方按鈕前往正式報名表單，或重新填寫一份問卷。</p>
+          <p>若日後改變心意，可隨時點擊下方按鈕前往正式報名表單，或重新填寫一份選課建議。</p>
           <a class="enroll-link" href="${REGISTRATION_URL}" target="_blank" rel="noopener" style="background:#525252;box-shadow:none;">
             前往報名表單
           </a>
         </div>
       `}
 
-      <a href="javascript:void(0)" class="enroll-skip" id="restart">填寫新的一份問卷 →</a>
+      <a href="javascript:void(0)" class="enroll-skip" id="restart">填寫新的選課建議 →</a>
     </div>
   `;
   document.getElementById('restart').addEventListener('click', () => {
