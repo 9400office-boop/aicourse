@@ -141,6 +141,42 @@ button.ghost:hover { border-color: #fb923c; color: #c2410c; }
 .session .room { color: #78635a; font-size: 12px; }
 .session .topic { flex: 1; }
 
+/* Online courses section */
+.online-section {
+  margin: 22px 0 14px;
+  border: 2px dashed #94a3b8;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  overflow: hidden;
+}
+.online-head {
+  padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  border-bottom: 1px dashed #cbd5e1;
+}
+.online-icon { font-size: 28px; line-height: 1; }
+.online-title { font-weight: 700; font-size: 16px; color: #1e293b; }
+.online-sub   { font-size: 12px; color: #64748b; margin-top: 2px; }
+.online-list { padding: 8px 12px; }
+.online-item {
+  display: block; padding: 12px 14px; margin: 6px 0;
+  background: #fff; border-radius: 8px;
+  text-decoration: none; color: inherit;
+  border: 1px solid #e2e8f0;
+  transition: all .15s;
+}
+.online-item:hover {
+  border-color: #2563eb; background: #eff6ff;
+  transform: translateX(2px);
+}
+.online-item-title {
+  font-weight: 600; color: #1e40af; font-size: 14px;
+}
+.online-arrow { color: #64748b; font-weight: 400; }
+.online-item-desc {
+  font-size: 12px; color: #64748b; margin-top: 4px;
+}
+
 .enroll-bar {
   position: sticky; bottom: 0; left: 0; right: 0;
   background: #fff; border-top: 2px solid #ea580c;
@@ -220,14 +256,14 @@ button.ghost:hover { border-color: #fb923c; color: #c2410c; }
 <div class="wrap">
   <header class="hero">
     <h1>奇美醫院 AI 培訓 · 智能選課顧問</h1>
-    <p>填寫資料、回答 6 個問題，獲得個人化推薦並送出報名意願</p>
+    <p>填寫資料、回答問題，獲得個人化推薦並送出報名意願</p>
   </header>
 
   <div class="progress"><div id="bar" style="width:0%"></div></div>
   <div id="app" class="card"></div>
 
   <div class="foot">
-    主辦：深耕計畫辦公室、AI Everywhere 小組 <strong></strong>
+    製作：深耕計畫辦公室、AI Everywhere 小組 <strong></strong>
   </div>
 </div>
 
@@ -236,7 +272,7 @@ button.ghost:hover { border-color: #fb923c; color: #c2410c; }
 //  ⚠️  必填：請把您部署 Apps Script Web App 後拿到的網址貼在這裡
 //  範例：https://script.google.com/macros/s/AKfycbz.../exec
 // ============================================================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2nBNVMsomgChTrin2ONlf7V5T3I-0--dNRRMpXat-WnIDAS_aV3kUnf2Bt4L1nU8/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-uQVXyIABeD668RyTgaaHUc2BeyZGpp9ZPxLupCOqk6nr9l8C7UnJSGX9nOc-CnhW/exec";
 
 // 正式報名表單連結（同仁送出意願後會看到，點擊前往 Microsoft Forms 完成報名）
 const REGISTRATION_URL = "https://forms.cloud.microsoft/r/Qtzps8P76R";
@@ -280,11 +316,27 @@ const Q = [
       { v:"admin",  label:"行政"  },
       { v:"it",     label:"資訊"  }
     ]},
-  { key:"level", title:"您目前對 AI 工具（如 ChatGPT、Copilot）的熟悉度？", opts:[
-      { v:"none",  label:"幾乎沒用過"   },
-      { v:"some",  label:"偶爾使用"     },
-      { v:"often", label:"熟練使用"     },
-      { v:"power", label:"進階使用者"   }
+  { key:"level", title:"您目前對生成式 AI 工具的熟悉度？", opts:[
+      { v:"none",  label:"入門（從未使用，或只試過 1–2 次）" },
+      { v:"some",  label:"基礎（會打字問問題、請 AI 改寫文字，主要用網頁版）" },
+      { v:"often", label:"熟練（會用 prompt 技巧、能把 AI 串到日常工作流，例如 Copilot in Word）" },
+      { v:"power", label:"進階（會自建 GPTs / Agent / RAG 系統，能判斷模型限制與準確度）" }
+    ]},
+  { key:"freq", title:"您每週使用 AI 工具的頻率？", opts:[
+      { v:"never",  label:"幾乎不用（< 1 次／週）" },
+      { v:"low",    label:"偶爾使用（1–3 次／週）" },
+      { v:"high",   label:"經常使用（4–10 次／週）" },
+      { v:"daily",  label:"高頻使用（每天多次，已是工作流核心）" }
+    ]},
+  { key:"tool", title:"您目前最常使用的生成式 AI 工具？", type:"with_other", opts:[
+      { v:"chatgpt",    label:"ChatGPT（GPT-4 / GPT-5）" },
+      { v:"claude",     label:"Claude / Claude Code" },
+      { v:"gemini",     label:"Gemini" },
+      { v:"perplexity", label:"Perplexity" },
+      { v:"notebooklm", label:"NotebookLM" },
+      { v:"grok",       label:"Grok" },
+      { v:"manus",      label:"Manus" },
+      { v:"other",      label:"其他（請於下方輸入工具名稱）" }
     ]},
   { key:"goal", title:"接下來半年，您最想用 AI 解決什麼？", opts:[
       { v:"productivity", label:"提升個人工作效率" },
@@ -293,11 +345,11 @@ const Q = [
       { v:"automation",   label:"報表／公文／流程自動化" },
       { v:"build",        label:"想做出部門 AI 助理／系統整合" }
     ]},
-  { key:"time", title:"半年內您可以投入的學習時間？", opts:[
-      { v:"min",  label:"很有限（< 8 小時）"  },
-      { v:"med",  label:"適中（8–20 小時）"   },
-      { v:"high", label:"充裕（20–40 小時）"  },
-      { v:"max",  label:"全力投入（> 40 小時）" }
+  { key:"time", title:"您每月可投入學習新工具的時間？", opts:[
+      { v:"min",  label:"很有限（< 4 小時／月）" },
+      { v:"med",  label:"適中（4–8 小時／月）"   },
+      { v:"high", label:"充裕（8–16 小時／月）"  },
+      { v:"max",  label:"全力投入（> 16 小時／月，幾乎天天有時間學）" }
     ]},
   { key:"task", title:"您是否有「特定專案」想先解決？", opts:[
       { v:"none",   label:"暫無特定專案"       },
@@ -309,18 +361,53 @@ const Q = [
     ]}
 ];
 
+// 已知的生成式 AI 工具關鍵字（用於判斷「其他」欄位輸入是否屬於 GAI）
+const GAI_TOOL_KEYWORDS = [
+  "claude","anthropic","gpt","chatgpt","openai","o1","o3",
+  "gemini","bard","google ai","grok","xai",
+  "copilot","perplexity","notebooklm","manus",
+  "llama","meta ai","mistral","deepseek","qwen","tongyi",
+  "kimi","moonshot","doubao","ernie","baichuan","glm","yi-",
+  "character.ai","characterai","poe","hugging face","huggingface",
+  "midjourney","stable diffusion","dall-e","dalle","sora",
+  "runway","pika","kling","suno","udio","ideogram","flux","leonardo",
+  "lobe","cherry studio","openwebui","cursor","windsurf","bolt","v0",
+  "生成式","大語言模型","llm"
+];
+function isGAITool(text) {
+  if (!text) return false;
+  const t = text.toLowerCase().trim();
+  if (!t) return false;
+  return GAI_TOOL_KEYWORDS.some(kw => t.includes(kw));
+}
+
+// 免費線上課程（不論推薦結果為何，永遠出現）
+const ONLINE_COURSES = [
+  { title:"Google Skills · 生成式 AI 入門課程",
+    url:"https://www.skills.google/course_templates/1081?locale=zh_TW",
+    desc:"Google 官方繁中課程，從零認識 GAI 概念與應用" },
+  { title:"Google · AI 認證學習路徑",
+    url:"https://educertifications.google/",
+    desc:"Google 完整 AI / Cloud 認證地圖，可選擇職涯路徑學習" },
+  { title:"Coursera · AI in Healthcare 專修",
+    url:"https://www.coursera.org/specializations/ai-healthcare?action=enroll",
+    desc:"Stanford 醫療 AI 專業課程（可申請助學金免費修）" }
+];
+
 // ====== Label maps ======
 const ROLE_LABEL = {apex:"一二級主管 (Apex)", p3:"三級主管 (Pillars)", p4:"四級主管 (Pillars)", staff:"專業員工 (Foundation)"};
 const JOB_LABEL  = {nurse:"護理", doctor:"醫師", allied:"醫事", admin:"行政", it:"資訊"};
-const LEVEL_LABEL= {none:"幾乎沒用過", some:"偶爾使用", often:"熟練", power:"進階使用者"};
+const LEVEL_LABEL= {none:"入門（從未使用）", some:"基礎（會問問題、改寫文字）", often:"熟練（會 prompt、串入工作流）", power:"進階（會建 GPTs / Agent / RAG）"};
+const FREQ_LABEL = {never:"幾乎不用", low:"1–3 次/週", high:"4–10 次/週", daily:"每天多次"};
+const TOOL_LABEL = {chatgpt:"ChatGPT", claude:"Claude / Claude Code", gemini:"Gemini", perplexity:"Perplexity", notebooklm:"NotebookLM", grok:"Grok", manus:"Manus", other:"其他"};
 const GOAL_LABEL = {productivity:"提升個人效率", clinical:"臨床/衛教場景", research:"醫學研究/文獻", automation:"報表/公文自動化", build:"部門 AI 助理/系統整合"};
-const TIME_LABEL = {min:"<8 小時", med:"8–20 小時", high:"20–40 小時", max:">40 小時"};
+const TIME_LABEL = {min:"<4 小時/月", med:"4–8 小時/月", high:"8–16 小時/月", max:">16 小時/月"};
 const TASK_LABEL = {none:"暫無", report:"報表自動化", edu:"衛教影音", lit:"醫學文獻", chart:"預診摘要/病歷", agent:"部門知識助理/RAG"};
 const TAG_LABEL  = {must:"強烈建議", rec:"建議", opt:"選修"};
 
 // ====== State ======
 const TOTAL_STEPS = Q.length + 1; // +1 for intro page
-const state = { step: 0, ans: {}, info: { name:"", empId:"" }, enrollments: new Set(), submitted: false };
+const state = { step: 0, ans: {}, info: { name:"", empId:"" }, toolOther: "", enrollments: new Set(), submitted: false };
 const app = document.getElementById("app");
 const bar = document.getElementById("bar");
 
@@ -348,7 +435,7 @@ function renderIntro() {
     <div class="field">
       <label for="empId">人事號 <span style="color:#ef4444">*</span></label>
       <input type="text" id="empId" value="${escapeAttr(state.info.empId)}" placeholder="請輸入您的人事號">
-      <div class="hint">用於後續報名意願統計與通知</div>
+      <div class="hint">用於後續報名使用</div>
     </div>
     <div class="nav">
       <span></span>
@@ -372,6 +459,7 @@ function renderIntro() {
 function renderQuestion(idx) {
   const q = Q[idx];
   const cur = state.ans[q.key];
+  const hasOther = q.type === "with_other";
   app.innerHTML = `
     <span class="q-num">第 ${idx + 2} 步 / ${TOTAL_STEPS}　·　問題 ${idx + 1} / ${Q.length}</span>
     <h2 class="q">${q.title}</h2>
@@ -383,26 +471,64 @@ function renderQuestion(idx) {
         </label>
       `).join("")}
     </div>
+    ${hasOther ? `
+      <div id="otherWrap" class="field" style="margin-top:14px;display:${cur==='other'?'block':'none'}">
+        <label for="otherInput">請輸入您使用的工具名稱</label>
+        <input type="text" id="otherInput" value="${escapeAttr(state.toolOther||'')}" placeholder="">
+        <div class="hint"></div>
+      </div>
+    ` : ''}
     <div class="nav">
       <button class="ghost" id="back">← 上一步</button>
       <button class="primary" id="next" disabled>${idx === Q.length - 1 ? '看推薦結果 →' : '下一題 →'}</button>
     </div>
   `;
+
+  function checkNext() {
+    const nextBtn = document.getElementById('next');
+    const v = state.ans[q.key];
+    if (!v) { nextBtn.disabled = true; return; }
+    if (hasOther && v === 'other') {
+      nextBtn.disabled = !(state.toolOther && state.toolOther.trim());
+    } else {
+      nextBtn.disabled = false;
+    }
+  }
+
   app.querySelectorAll('input[type=radio]').forEach(r => {
     r.addEventListener('change', e => {
       state.ans[q.key] = e.target.value;
       app.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
       e.target.closest('.opt').classList.add('selected');
-      document.getElementById('next').disabled = false;
+      if (hasOther) {
+        const wrap = document.getElementById('otherWrap');
+        wrap.style.display = e.target.value === 'other' ? 'block' : 'none';
+      }
+      checkNext();
     });
   });
-  document.getElementById('next').disabled = !cur;
+
+  if (hasOther) {
+    const inp = document.getElementById('otherInput');
+    if (inp) inp.addEventListener('input', e => {
+      state.toolOther = e.target.value;
+      checkNext();
+    });
+  }
+
+  checkNext();
   document.getElementById('next').addEventListener('click', () => { state.step++; render(); });
   document.getElementById('back').addEventListener('click', () => { state.step--; render(); });
 }
 
 // ====== Recommendation engine ======
 function recommend(a) {
+  // -------- 早退條件：以下情境不推薦任何院內課程，僅顯示免費線上資源 --------
+  // 1. 每月可投入時間 < 4 小時
+  if (a.time === "min") return [];
+  // 2. 工具填「其他」且輸入內容非 GAI 工具
+  if (a.tool === "other" && !isGAITool(state.toolOther)) return [];
+
   const recs = [];
 
   // -------- A 班 --------
@@ -494,26 +620,6 @@ function recommend(a) {
       sessions:[{ date:s.date, time:s.time, room:s.room, topic:s.topic }]});
   });
 
-  // -------- Power BI / Power Automate --------
-  let pbiTag = null, pbiWhy = "";
-  if (a.job === "nurse" || a.job === "allied" || a.job === "admin")
-    { pbiTag = "rec"; pbiWhy = "您的職類強烈建議 Power BI 數據視覺化（交班、報表、品質指標看板）。"; }
-  if (a.goal === "automation" || a.task === "report")
-    { pbiTag = "must"; pbiWhy = "報表 / 自動化是您主要目標，Power BI 屬於必修。"; }
-  if (a.job === "doctor" && pbiTag !== "must") { pbiTag = "opt"; pbiWhy = "醫師為選修建議，視研究數據視覺化需求加修。"; }
-  if (pbiTag) recs.push({ id:"PBI", tag:pbiTag, code:"Power BI · 數據視覺化", title:"另案排課（依職類分梯）", why:pbiWhy,
-    sessions:[{ date:"另行公告", time:"", room:"", topic:"院內 Power BI 軸線課程，依需求加開" }]});
-
-  let paTag = null, paWhy = "";
-  if (a.job === "admin" || a.job === "it")
-    { paTag = "must"; paWhy = "公文 / 報表 / 系統整合 → Power Automate 為強烈建議（資訊建議考 PL-900）。"; }
-  else if (a.goal === "automation" || a.task === "report")
-    { paTag = "rec"; paWhy = "與報表 / 流程自動化目標一致。"; }
-  else if (a.job === "nurse" || a.job === "allied")
-    { paTag = "opt"; paWhy = "可選修，偏交班 / 報表簡單流程自動化。"; }
-  if (paTag) recs.push({ id:"PA", tag:paTag, code:"Power Automate · 流程自動化", title:"另案排課", why:paWhy,
-    sessions:[{ date:"另行公告", time:"", room:"", topic:"流程自動化軸線（行政 / 資訊建議考 PL-900）" }]});
-
   // sort by priority: must -> rec -> opt
   const order = { must:0, rec:1, opt:2 };
   recs.sort((x,y) => order[x.tag] - order[y.tag]);
@@ -525,22 +631,46 @@ function renderResult() {
   const a = state.ans;
   const recs = recommend(a);
   state._recs = recs; // cache for submit
-  // 不預設勾選 — 由報名者自行決定
   const counts = { must:0, rec:0, opt:0 };
   recs.forEach(r => counts[r.tag]++);
+
+  // 早退原因（用於空推薦時的解釋文字）
+  let emptyReason = "";
+  if (recs.length === 0) {
+    if (a.time === "min") {
+      emptyReason = "您每月可投入學習時間較少（< 4 小時／月），目前院內課程最短也需 3–4 小時，故本批暫不推薦。建議先從下方「免費線上課程」開始累積基礎，下一梯次有更多時間時歡迎報名。";
+    } else if (a.tool === "other" && !isGAITool(state.toolOther)) {
+      emptyReason = `您填寫的工具「${escapeHtml(state.toolOther)}」非此次開課項目，故本次暫不推薦。`;
+    }
+  }
+
+  // 工具顯示文字（含其他輸入的內容）
+  const toolDisplay = a.tool === "other"
+    ? `其他：${escapeHtml(state.toolOther||"")}`
+    : TOOL_LABEL[a.tool];
 
   app.innerHTML = `
     <div class="result-header">
       <span class="badge">您的個人化推薦</span>
-      <h2>共 ${recs.length} 門課程建議（強烈建議 ${counts.must} · 建議 ${counts.rec} · 選修 ${counts.opt}）</h2>
-      <p>勾選您「想實際報名」的課程，下方按鈕送出</p>
+      ${recs.length > 0
+        ? `<h2>共 ${recs.length} 門課程建議（強烈建議 ${counts.must} · 建議 ${counts.rec} · 選修 ${counts.opt}）</h2>
+           <p>勾選您「想實際報名」的課程，下方按鈕送出</p>`
+        : `<h2>本批暫無院內課程推薦</h2>
+           <p>但仍可參考下方「免費線上課程」開始學習</p>`}
     </div>
 
     <div class="summary">
       <b>${escapeHtml(state.info.name)}</b>（人事號 ${escapeHtml(state.info.empId)}）<br>
-      ${ROLE_LABEL[a.role]}　·　${JOB_LABEL[a.job]}　·　AI 熟悉度：${LEVEL_LABEL[a.level]}<br>
-      <b>學習目標：</b>${GOAL_LABEL[a.goal]}　|　<b>可投入時間：</b>${TIME_LABEL[a.time]}　|　<b>特定任務：</b>${TASK_LABEL[a.task]}
+      ${ROLE_LABEL[a.role]}　·　${JOB_LABEL[a.job]}　·　AI 熟悉度：${LEVEL_LABEL[a.level]}　·　使用頻率：${FREQ_LABEL[a.freq]}<br>
+      <b>常用工具：</b>${toolDisplay}　|　<b>目標：</b>${GOAL_LABEL[a.goal]}<br>
+      <b>每月可投入：</b>${TIME_LABEL[a.time]}　|　<b>特定任務：</b>${TASK_LABEL[a.task]}
     </div>
+
+    ${emptyReason ? `
+      <div class="summary" style="background:#fef3c7;border-left-color:#d97706;">
+        <b style="color:#92400e">說明：</b>${emptyReason}
+      </div>
+    ` : ""}
 
     ${recs.map(r => {
       const checked = state.enrollments.has(r.id);
@@ -566,10 +696,29 @@ function renderResult() {
       `;
     }).join("")}
 
+    <!-- 免費線上課程區塊 — 一律顯示 -->
+    <div class="online-section">
+      <div class="online-head">
+        <span class="online-icon">🎓</span>
+        <div>
+          <div class="online-title">免費線上課程</div>
+          <div class="online-sub">不限職類、不限時間，隨時可開始的自學資源</div>
+        </div>
+      </div>
+      <div class="online-list">
+        ${ONLINE_COURSES.map(c => `
+          <a class="online-item" href="${c.url}" target="_blank" rel="noopener">
+            <div class="online-item-title">${c.title} <span class="online-arrow">↗</span></div>
+            <div class="online-item-desc">${c.desc}</div>
+          </a>
+        `).join("")}
+      </div>
+    </div>
+
     <div class="enroll-bar">
-      <div class="count" id="cntText">尚未選擇課程</div>
+      <div class="count" id="cntText">${recs.length === 0 ? "（無院內課程可勾選）" : "尚未選擇課程"}</div>
       <button class="ghost" id="back">← 修改</button>
-      <button class="primary" id="submit">勾選後前往填寫報名表 →</button>
+      <button class="primary" id="submit">${recs.length === 0 ? "送出回覆" : "勾選後前往填寫報名表 →"}</button>
     </div>
   `;
 
@@ -609,16 +758,24 @@ async function submitForm() {
   const recs = state._recs || [];
   const enrolled = recs.filter(r => state.enrollments.has(r.id));
 
+  const toolText = a.tool === "other"
+    ? `其他：${state.toolOther||""}`
+    : TOOL_LABEL[a.tool];
+
   const payload = {
     name:      state.info.name,
     empId:     state.info.empId,
     role:      ROLE_LABEL[a.role],
     job:       JOB_LABEL[a.job],
     level:     LEVEL_LABEL[a.level],
+    freq:      FREQ_LABEL[a.freq],
+    tool:      toolText,
     goal:      GOAL_LABEL[a.goal],
     time:      TIME_LABEL[a.time],
     task:      TASK_LABEL[a.task],
-    recommendations: recs.map(r => `[${TAG_LABEL[r.tag]}] ${r.code}`),
+    recommendations: recs.length > 0
+      ? recs.map(r => `[${TAG_LABEL[r.tag]}] ${r.code}`)
+      : ["（依條件無院內課程推薦，僅顯示免費線上資源）"],
     enrollments:     enrolled.map(r => r.code)
   };
 
@@ -675,19 +832,20 @@ function renderThanks() {
       ` : `
         <div class="enroll-cta" style="background:#f5f5f5;border-color:#d4d4d4;">
           <h3 style="color:#525252;">您本次未勾選任何想報名的課程</h3>
-          <p>若日後改變心意，可隨時點擊下方按鈕前往正式報名表單，或重新填寫一份選課單。</p>
+          <p>若日後改變心意，可隨時點擊下方按鈕前往正式報名表單，或重新填寫一份問卷。</p>
           <a class="enroll-link" href="${REGISTRATION_URL}" target="_blank" rel="noopener" style="background:#525252;box-shadow:none;">
             前往報名表單
           </a>
         </div>
       `}
 
-      <a href="javascript:void(0)" class="enroll-skip" id="restart">填寫新的一份選課單 →</a>
+      <a href="javascript:void(0)" class="enroll-skip" id="restart">填寫新的一份問卷 →</a>
     </div>
   `;
   document.getElementById('restart').addEventListener('click', () => {
     state.step = 0; state.ans = {}; state.info = { name:"", empId:"" };
-    state.enrollments = new Set(); state.submitted = false; state._recs = null;
+    state.toolOther = ""; state.enrollments = new Set();
+    state.submitted = false; state._recs = null;
     render();
   });
 }
