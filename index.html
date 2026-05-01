@@ -899,7 +899,7 @@ function renderThanks() {
       ${hasEnrollment ? `
         <div class="enroll-cta">
           <h3>下一步：完成正式報名</h3>
-          <p>請點擊下方按鈕前往正式報名表單，完成最後手續。您勾選了 <b>${enrolled.length}</b> 門課程：</p>
+          <p>請點擊下方按鈕前往正式報名表單，完成最後手續。您勾選了推薦的 <b>${enrolled.length}</b> 門課程：</p>
           <div class="enroll-list">
             ${enrolled.map(r => `<div class="item">✓ ${r.code}</div>`).join("")}
           </div>
