@@ -141,6 +141,32 @@ button.ghost:hover { border-color: #fb923c; color: #c2410c; }
 .session .room { color: #78635a; font-size: 12px; }
 .session .topic { flex: 1; }
 
+/* Suggest topic box */
+.suggest-box {
+  margin: 18px 0; padding: 16px 18px;
+  border: 1.5px solid #f3d4b1; border-radius: 12px;
+  background: #fffaf3;
+}
+.suggest-box.highlight {
+  border: 2px solid #ea580c; background: #fff1e0;
+  box-shadow: 0 4px 14px rgba(234,88,12,.12);
+}
+.suggest-box label {
+  display: block; margin-bottom: 8px; font-weight: 600;
+  color: #1f1a12; font-size: 14px;
+}
+.suggest-box.highlight label { color: #c2410c; font-size: 15px; }
+.suggest-box textarea {
+  width: 100%; padding: 12px 14px; font-size: 14px;
+  border: 1.5px solid #f3d4b1; border-radius: 8px;
+  background: #fff; font-family: inherit; resize: vertical; min-height: 70px;
+  transition: all .15s;
+}
+.suggest-box textarea:focus {
+  outline: none; border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(251,146,60,.18);
+}
+
 /* Online courses section */
 .online-section {
   margin: 22px 0 14px;
@@ -255,15 +281,15 @@ button.ghost:hover { border-color: #fb923c; color: #c2410c; }
 <body>
 <div class="wrap">
   <header class="hero">
-    <h1>奇美醫院 AI 培訓 · 智能選課顧問</h1>
-    <p>填寫資料、回答問題，獲得個人化推薦並送出報名意願</p>
+    <h1>奇美醫院 AI 培訓 · 智能選課</h1>
+    <p>填寫資料、回答問題，獲得個人化推薦課程</p>
   </header>
 
   <div class="progress"><div id="bar" style="width:0%"></div></div>
   <div id="app" class="card"></div>
 
   <div class="foot">
-    製作：深耕計畫辦公室、AI Everywhere 小組 <strong></strong>
+    製作：深耕計畫辦公室、AI Everywhere 小組 <strong>53710</strong>
   </div>
 </div>
 
@@ -407,7 +433,11 @@ const TAG_LABEL  = {must:"強烈建議", rec:"建議", opt:"選修"};
 
 // ====== State ======
 const TOTAL_STEPS = Q.length + 1; // +1 for intro page
-const state = { step: 0, ans: {}, info: { name:"", empId:"" }, toolOther: "", enrollments: new Set(), submitted: false };
+const state = {
+  step: 0, ans: {}, info: { name:"", empId:"" },
+  toolOther: "", enrollments: new Set(),
+  suggestedTopic: "", autoSaved: false, submitted: false
+};
 const app = document.getElementById("app");
 const bar = document.getElementById("bar");
 
@@ -435,7 +465,7 @@ function renderIntro() {
     <div class="field">
       <label for="empId">人事號 <span style="color:#ef4444">*</span></label>
       <input type="text" id="empId" value="${escapeAttr(state.info.empId)}" placeholder="請輸入您的人事號">
-      <div class="hint">用於後續報名使用</div>
+      <div class="hint">用於後續報名意願統計與通知</div>
     </div>
     <div class="nav">
       <span></span>
@@ -638,9 +668,9 @@ function renderResult() {
   let emptyReason = "";
   if (recs.length === 0) {
     if (a.time === "min") {
-      emptyReason = "您每月可投入學習時間較少（< 4 小時／月），目前院內課程最短也需 3–4 小時，故本次暫不推薦。建議先從下方「免費線上課程」開始累積基礎，下一梯次有更多時間時歡迎報名。";
+      emptyReason = "您每月可投入學習時間較少（< 4 小時／月），目前院內課程最短也需 3–4 小時，故本次暫不推薦。建議先從下方「免費線上課程」開始累積基礎，下一梯次有更多時間時歡迎參加。";
     } else if (a.tool === "other" && !isGAITool(state.toolOther)) {
-      emptyReason = `您填寫的工具「${escapeHtml(state.toolOther)}」非此次開課項目，故本次暫不推薦。`;
+      emptyReason = `您填寫的工具「${escapeHtml(state.toolOther)}」非屬本次課程項目，故本次暫不推薦。`;
     }
   }
 
@@ -655,7 +685,7 @@ function renderResult() {
       ${recs.length > 0
         ? `<h2>共 ${recs.length} 門課程建議（強烈建議 ${counts.must} · 建議 ${counts.rec} · 選修 ${counts.opt}）</h2>
            <p>勾選您「想實際報名」的課程，下方按鈕送出</p>`
-        : `<h2>本批暫無院內課程推薦</h2>
+        : `<h2>本次暫無院內課程推薦</h2>
            <p>但仍可參考下方「免費線上課程」開始學習</p>`}
     </div>
 
@@ -696,13 +726,23 @@ function renderResult() {
       `;
     }).join("")}
 
+    <!-- 課程主題建議 — 開放式回饋（特別重要：捕捉沒有被推薦的人的需求）-->
+    <div class="suggest-box ${recs.length === 0 ? 'highlight' : ''}">
+      <label for="suggestTopic">
+        ${recs.length === 0
+          ? '⚡ 您希望未來看到哪些 AI 課程主題？您的回饋將是未來課程規劃重要的參考'
+          : '想建議辦公室新增的課程主題？（選填）'}
+      </label>
+      <textarea id="suggestTopic" rows="3" placeholder="例如：想學 NotebookLM 整理護理研究、想了解 Perplexity 做即時臨床查詢、希望加開 n8n 流程自動化..."></textarea>
+    </div>
+
     <!-- 免費線上課程區塊 — 一律顯示 -->
     <div class="online-section">
       <div class="online-head">
         <span class="online-icon">🎓</span>
         <div>
           <div class="online-title">免費線上課程</div>
-          <div class="online-sub">不限職類、不限時間，隨時可開始的學習資源</div>
+          <div class="online-sub">不限職類、不限時間，隨時可開始的自學資源</div>
         </div>
       </div>
       <div class="online-list">
@@ -750,19 +790,28 @@ function renderResult() {
   });
   document.getElementById('back').addEventListener('click', () => { state.step--; render(); });
   document.getElementById('submit').addEventListener('click', submitForm);
+
+  // 「課程主題建議」textarea — 還原已輸入內容並綁定事件
+  const ta = document.getElementById('suggestTopic');
+  if (ta) {
+    ta.value = state.suggestedTopic || "";
+    ta.addEventListener('input', e => { state.suggestedTopic = e.target.value; });
+  }
+
+  // 自動儲存：結果頁一載入就靜默送出，避免使用者直接關閉視窗導致資料流失
+  autoSubmit();
 }
 
-async function submitForm() {
-  const btn = document.getElementById('submit');
+// 統一組裝 payload，stage 標記是「自動記錄」還是「手動送出」
+function buildPayload(stage) {
   const a = state.ans;
   const recs = state._recs || [];
   const enrolled = recs.filter(r => state.enrollments.has(r.id));
-
   const toolText = a.tool === "other"
     ? `其他：${state.toolOther||""}`
     : TOOL_LABEL[a.tool];
-
-  const payload = {
+  return {
+    stage,
     name:      state.info.name,
     empId:     state.info.empId,
     role:      ROLE_LABEL[a.role],
@@ -773,11 +822,39 @@ async function submitForm() {
     goal:      GOAL_LABEL[a.goal],
     time:      TIME_LABEL[a.time],
     task:      TASK_LABEL[a.task],
+    suggestedTopic: state.suggestedTopic || "",
     recommendations: recs.length > 0
       ? recs.map(r => `[${TAG_LABEL[r.tag]}] ${r.code}`)
       : ["（依條件無院內課程推薦，僅顯示免費線上資源）"],
     enrollments:     enrolled.map(r => r.code)
   };
+}
+
+// 自動靜默儲存 — 結果頁一載入就執行，避免使用者直接關閉視窗導致資料流失
+async function autoSubmit() {
+  if (state.autoSaved) return;
+  if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR")) return;
+  state.autoSaved = true;
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(buildPayload("自動記錄"))
+    });
+    const data = await res.json();
+    if (data.status !== "ok") {
+      state.autoSaved = false; // 失敗時允許下次重試
+    }
+    // 自動儲存完全靜默 — 不顯示任何提示，避免使用者誤以為可以直接關閉視窗
+  } catch (e) {
+    console.warn("auto-save failed", e);
+    state.autoSaved = false;
+  }
+}
+
+async function submitForm() {
+  const btn = document.getElementById('submit');
+  const payload = buildPayload("手動送出");
 
   if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR")) {
     showToast("尚未設定 Apps Script 網址。請依說明書部署後，把網址貼到 HTML 第 233 行的 SCRIPT_URL", "error");
@@ -789,7 +866,6 @@ async function submitForm() {
   try {
     const res = await fetch(SCRIPT_URL, {
       method: "POST",
-      // text/plain 避免 CORS preflight，由 Apps Script 端 JSON.parse
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     });
@@ -803,7 +879,9 @@ async function submitForm() {
   } catch (err) {
     console.error(err);
     showToast("儲存失敗：" + err.message, "error");
-    btn.disabled = false; btn.textContent = "勾選後前往填寫報名表 →";
+    btn.disabled = false;
+    const recs = state._recs || [];
+    btn.textContent = recs.length === 0 ? "送出回覆" : "勾選後前往填寫報名表 →";
   }
 }
 
@@ -830,21 +908,23 @@ function renderThanks() {
           </a>
         </div>
       ` : `
-        <div class="enroll-cta" style="background:#f5f5f5;border-color:#d4d4d4;">
-          <h3 style="color:#525252;">您本次未勾選任何想報名的課程</h3>
-          <p>若日後改變心意，可隨時點擊下方按鈕前往正式報名表單，或重新填寫一份選課建議。</p>
-          <a class="enroll-link" href="${REGISTRATION_URL}" target="_blank" rel="noopener" style="background:#525252;box-shadow:none;">
+        <div class="enroll-cta">
+          <h3>感謝您的回饋！</h3>
+          <p>這對我們規劃下次課程非常重要，尤其是您填寫的「希望課程主題」，將是未來規劃新班需求的關鍵依據。</p>
+          <p style="margin-top:10px;font-size:13px;color:#a08773">若想報名現有課程，仍可點擊下方按鈕前往報名表。</p>
+          <a class="enroll-link" href="${REGISTRATION_URL}" target="_blank" rel="noopener">
             前往報名表單
           </a>
         </div>
       `}
 
-      <a href="javascript:void(0)" class="enroll-skip" id="restart">填寫新的選課建議 →</a>
+      <a href="javascript:void(0)" class="enroll-skip" id="restart">填寫新的一份問卷 →</a>
     </div>
   `;
   document.getElementById('restart').addEventListener('click', () => {
     state.step = 0; state.ans = {}; state.info = { name:"", empId:"" };
     state.toolOther = ""; state.enrollments = new Set();
+    state.suggestedTopic = ""; state.autoSaved = false;
     state.submitted = false; state._recs = null;
     render();
   });
