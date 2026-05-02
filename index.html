@@ -3,289 +3,912 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>奇美 AI 培訓 — 智能選課</title>
+<title>奇美 AI 培訓 · 智能選課</title>
 <style>
-:root { color-scheme: light; }
+:root {
+  color-scheme: light;
+  /* 系統色 — 灰階主軸 */
+  --ink-1: #0a0e14;
+  --ink-2: #1f2937;
+  --ink-3: #334155;
+  --ink-4: #475569;
+  --ink-5: #64748b;
+  --ink-6: #94a3b8;
+  --line:   #cbd5e1;
+  --line-2: #94a3b8;
+  --line-3: #64748b;
+  --bg-1:   #f8fafc;
+  --bg-2:   #f1f5f9;
+  --card:   #ffffff;
+  /* 橘色 accent — 收斂使用 */
+  --accent:      #ea580c;
+  --accent-soft: #fb923c;
+  --accent-deep: #c2410c;
+  --accent-pale: #fff7ed;
+  --accent-50:   #fff7ed;
+  --accent-100:  #ffedd5;
+  --accent-200:  #fed7aa;
+  /* 強調色 */
+  --green: #059669;
+  --red:   #dc2626;
+  --blue:  #2563eb;
+  /* 系統陰影 */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, .04);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .05), 0 1px 3px rgba(15, 23, 42, .06);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, .04), 0 2px 4px -2px rgba(15, 23, 42, .04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, .06), 0 4px 6px -4px rgba(15, 23, 42, .04);
+  --radius-sm: 8px;
+  --radius:    10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+}
 * { box-sizing: border-box; }
+html, body { height: 100%; }
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
-  background: #fff8f1;
-  color: #2c2418;
+  color: var(--ink-1);
   line-height: 1.6;
+  font-size: 15px;
+  background:
+    radial-gradient(at 12% 8%,  #fff3e6 0%, transparent 35%),
+    radial-gradient(at 88% 12%, #ffe4d4 0%, transparent 32%),
+    radial-gradient(at 78% 92%, #e0f2fe 0%, transparent 35%),
+    radial-gradient(at 18% 88%, #fae8ff 0%, transparent 30%),
+    var(--bg-1);
+  background-attachment: fixed;
+  position: relative;
+  overflow-x: hidden;
 }
-.wrap { max-width: 820px; margin: 0 auto; padding: 24px 18px 60px; }
+
+/* === 自訂捲軸 === */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border-radius: 99px;
+  border: 2px solid var(--bg-1);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--ink-5); }
+
+/* === 液態流動玻璃背景 — 多顆 blob 不同節奏 === */
+.liquid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.liquid-bg::before,
+.liquid-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+.liquid-bg::before {
+  width: 55vmax; height: 55vmax;
+  top: -20vmax; right: -15vmax;
+  background: radial-gradient(circle, rgba(251,146,60,.55) 0%, rgba(251,146,60,0) 65%);
+  animation: floatA 24s ease-in-out infinite;
+  opacity: .85;
+}
+.liquid-bg::after {
+  width: 60vmax; height: 60vmax;
+  bottom: -25vmax; left: -18vmax;
+  background: radial-gradient(circle, rgba(147,197,253,.55) 0%, rgba(147,197,253,0) 65%);
+  animation: floatB 28s ease-in-out infinite;
+  opacity: .8;
+}
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  will-change: transform;
+}
+.blob-1 {
+  width: 38vmax; height: 38vmax;
+  top: 30%; left: 38%;
+  background: radial-gradient(circle, rgba(254,200,150,.5) 0%, rgba(254,200,150,0) 60%);
+  animation: floatC 32s ease-in-out infinite;
+  opacity: .9;
+}
+.blob-2 {
+  width: 30vmax; height: 30vmax;
+  top: 8%; left: 12%;
+  background: radial-gradient(circle, rgba(217,178,255,.4) 0%, rgba(217,178,255,0) 60%);
+  animation: floatD 26s ease-in-out infinite;
+  opacity: .7;
+}
+.blob-3 {
+  width: 32vmax; height: 32vmax;
+  bottom: 12%; right: 18%;
+  background: radial-gradient(circle, rgba(255,200,200,.42) 0%, rgba(255,200,200,0) 60%);
+  animation: floatE 30s ease-in-out infinite;
+  opacity: .75;
+}
+.blob-4 {
+  width: 26vmax; height: 26vmax;
+  top: 55%; left: 5%;
+  background: radial-gradient(circle, rgba(180,230,255,.45) 0%, rgba(180,230,255,0) 60%);
+  animation: floatF 34s ease-in-out infinite;
+  opacity: .8;
+}
+
+@keyframes floatA {
+  0%   { transform: translate(0, 0)        rotate(0deg)   scale(1); }
+  33%  { transform: translate(-7vw, 4vh)   rotate(120deg) scale(1.12); }
+  66%  { transform: translate(4vw, -6vh)   rotate(240deg) scale(.95); }
+  100% { transform: translate(0, 0)        rotate(360deg) scale(1); }
+}
+@keyframes floatB {
+  0%   { transform: translate(0, 0)        rotate(0deg)    scale(1); }
+  40%  { transform: translate(8vw, -5vh)   rotate(-140deg) scale(1.1); }
+  75%  { transform: translate(-3vw, 4vh)   rotate(-260deg) scale(.92); }
+  100% { transform: translate(0, 0)        rotate(-360deg) scale(1); }
+}
+@keyframes floatC {
+  0%, 100% { transform: translate(0, 0)              scale(1); }
+  50%      { transform: translate(6vw, -7vh)         scale(1.15); }
+}
+@keyframes floatD {
+  0%, 100% { transform: translate(0, 0)              scale(1); }
+  50%      { transform: translate(-5vw, 8vh)         scale(.9); }
+}
+@keyframes floatE {
+  0%, 100% { transform: translate(0, 0)              scale(1); }
+  50%      { transform: translate(7vw, 6vh)          scale(1.08); }
+}
+@keyframes floatF {
+  0%, 100% { transform: translate(0, 0)              scale(1); }
+  50%      { transform: translate(4vw, -9vh)         scale(.95); }
+}
+
+/* === 玻璃噪點疊層 === */
+.liquid-bg::before, .liquid-bg::after, .blob { mix-blend-mode: normal; }
+.glass-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.15) 0%, transparent 30%, transparent 70%, rgba(255,255,255,.1) 100%);
+  backdrop-filter: blur(.5px);
+  -webkit-backdrop-filter: blur(.5px);
+}
+
+.wrap {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+  position: relative;
+  z-index: 2;
+}
+
+/* === Hero — SaaS 系統風格 header === */
 header.hero {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-  color: #fff;
-  padding: 28px 24px;
-  border-radius: 16px;
-  margin-bottom: 22px;
-  box-shadow: 0 6px 22px rgba(234,88,12,.18);
+  position: relative;
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,.6);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: fadeUp .5s cubic-bezier(.4,0,.2,1) both;
 }
-header.hero h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: .5px; }
-header.hero p { margin: 0; opacity: .95; font-size: 14px; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-logo {
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent-soft) 0%, var(--accent) 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 17px;
+  box-shadow:
+    0 2px 8px rgba(234, 88, 12, .35),
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 -1px 0 rgba(0,0,0,.08);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.hero-logo::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,.25) 0%, transparent 100%);
+  pointer-events: none;
+}
+.hero-title { flex: 1; min-width: 0; }
+.hero-title h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-1);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hero-title .ver {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--ink-5);
+  font-weight: 500;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.hero-title p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--ink-5);
+}
+.hero-chips { display: flex; gap: 6px; flex-shrink: 0; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: rgba(241,245,249,.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--ink-3);
+  border: 1.5px solid var(--line);
+  white-space: nowrap;
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+}
+.chip:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(15,23,42,.06), inset 0 1px 0 rgba(255,255,255,.6); }
+.chip::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--ink-6);
+}
+.chip.green { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+.chip.green::before { background: var(--green); }
+.chip.orange { background: var(--accent-50); color: var(--accent-deep); border-color: var(--accent-200); }
+.chip.orange::before { background: var(--accent); }
+.chip.purple { background: #faf5ff; color: #6b21a8; border-color: #e9d5ff; }
+.chip.purple::before { background: #9333ea; }
+
+/* === Tab/Progress bar — 深色 dock 風格 === */
+.tab-dock {
+  background: linear-gradient(180deg, #1a2332 0%, #0a0e14 100%);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 4px;
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0,0,0,.2);
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp .5s cubic-bezier(.4,0,.2,1) both;
+  animation-delay: .05s;
+}
+.tab-dock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top, rgba(255,255,255,.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 100%, rgba(251,146,60,.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 10px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,.55);
+  border-radius: 8px;
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+  position: relative;
+  z-index: 1;
+  cursor: default;
+}
+.tab-item.active {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.12),
+    0 2px 8px rgba(0,0,0,.2);
+  text-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.tab-item.done {
+  color: rgba(251,146,60,.95);
+}
+.tab-item.done::after {
+  content: "✓";
+  margin-left: 4px;
+  font-size: 11px;
+  display: inline-block;
+  animation: pop .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* === Progress bar 細版 === */
 .progress {
-  height: 8px; background: #fde6cf; border-radius: 4px; overflow: hidden;
-  margin-bottom: 22px;
+  height: 4px;
+  border-radius: 99px;
+  margin-bottom: 16px;
+  background: rgba(203,213,225,.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.06);
 }
 .progress > div {
-  height: 100%; background: linear-gradient(90deg, #fb923c, #ea580c);
-  transition: width .4s ease;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent-soft) 0%, var(--accent) 50%, var(--accent-soft) 100%);
+  background-size: 200% 100%;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 12px rgba(234, 88, 12, .45), inset 0 1px 0 rgba(255,255,255,.4);
+  animation: progressFlow 2.5s linear infinite;
 }
+@keyframes progressFlow {
+  from { background-position: 0% 0; }
+  to   { background-position: 200% 0; }
+}
+
+/* === 主卡片 — 微玻璃 === */
 .card {
-  background: #fff;
-  border: 1px solid #fde2c5;
-  border-radius: 14px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(234,88,12,.05);
+  background: rgba(255,255,255,.86);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255,255,255,.7);
+  position: relative;
+  animation: fadeUp .5s cubic-bezier(.4,0,.2,1) both;
+  animation-delay: .1s;
 }
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  pointer-events: none;
+}
+
 .q-num {
-  display: inline-block; background: #fff1e0; color: #c2410c;
-  font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
-  margin-bottom: 10px; letter-spacing: .5px;
+  display: inline-block;
+  background: var(--bg-2);
+  color: var(--ink-4);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  letter-spacing: 0;
+  border: 1.5px solid var(--line);
+  font-feature-settings: "tnum";
 }
-h2.q { margin: 0 0 18px; font-size: 19px; color: #1f1a12; }
-.options { display: grid; gap: 10px; }
+h2.q {
+  margin: 0 0 22px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-1);
+  letter-spacing: -0.01em;
+}
+
+/* === Options - 系統列表風 === */
+.options { display: grid; gap: 8px; }
 .opt {
   display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px; border: 1.5px solid #f3d4b1;
-  border-radius: 10px; cursor: pointer; background: #fffaf3;
-  transition: all .15s;
+  padding: 13px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: rgba(255,255,255,.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+  position: relative;
+  overflow: hidden;
 }
-.opt:hover { border-color: #fb923c; background: #fff3e3; }
+.opt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,.3) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform .6s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+.opt:hover {
+  border-color: var(--line-2);
+  background: rgba(248,250,252,.85);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(15,23,42,.06);
+}
+.opt:hover::after { transform: translateX(100%); }
+.opt:active { transform: translateY(0); }
 .opt.selected {
-  border-color: #ea580c; background: #fff1e0;
-  box-shadow: 0 0 0 3px rgba(251,146,60,.18);
+  border-color: var(--accent);
+  background: rgba(255,247,237,.85);
+  box-shadow:
+    0 0 0 3px rgba(234, 88, 12, .14),
+    0 2px 8px rgba(234, 88, 12, .08);
+  transform: translateY(-1px);
 }
-.opt input { accent-color: #ea580c; }
+.opt input { accent-color: var(--accent); }
 .opt .lbl { flex: 1; }
-.opt .lbl strong { display: block; font-size: 15px; color: #1f1a12; font-weight: 600; }
-.nav { display: flex; justify-content: space-between; margin-top: 22px; gap: 10px; }
-button {
-  font: inherit; padding: 11px 22px; border-radius: 9px; border: none;
-  cursor: pointer; font-weight: 600; font-size: 14px;
-  transition: all .15s;
+.opt .lbl strong {
+  display: block;
+  font-size: 14.5px;
+  color: var(--ink-1);
+  font-weight: 500;
 }
-button.primary { background: #ea580c; color: #fff; }
-button.primary:hover:not(:disabled) { background: #c2410c; }
-button.primary:disabled { background: #f3d4b1; cursor: not-allowed; }
-button.ghost { background: #fff; color: #78635a; border: 1.5px solid #f3d4b1; }
-button.ghost:hover { border-color: #fb923c; color: #c2410c; }
-/* Text input fields */
-.field { margin-bottom: 16px; }
-.field label { display: block; margin-bottom: 6px; font-weight: 600; color: #1f1a12; font-size: 14px; }
+
+.nav { display: flex; justify-content: space-between; margin-top: 24px; gap: 10px; }
+
+/* === Buttons === */
+button {
+  font: inherit;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all .15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+button.primary {
+  background: linear-gradient(135deg, var(--accent-soft) 0%, var(--accent) 100%);
+  color: #fff;
+  box-shadow:
+    0 1px 2px rgba(234, 88, 12, .25),
+    0 4px 12px rgba(234, 88, 12, .18),
+    inset 0 1px 0 rgba(255,255,255,.25);
+  position: relative;
+  overflow: hidden;
+}
+button.primary::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,.18) 0%, transparent 100%);
+  pointer-events: none;
+}
+button.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  box-shadow:
+    0 2px 4px rgba(234, 88, 12, .3),
+    0 8px 20px rgba(234, 88, 12, .28),
+    inset 0 1px 0 rgba(255,255,255,.25);
+  transform: translateY(-1px);
+}
+button.primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(234, 88, 12, .25), inset 0 1px 2px rgba(0,0,0,.1);
+}
+button.primary:disabled {
+  background: var(--line-2);
+  color: var(--ink-6);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+button.ghost {
+  background: rgba(255,255,255,.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--ink-3);
+  border: 1.5px solid var(--line);
+}
+button.ghost:hover {
+  border-color: var(--line-2);
+  color: var(--ink-1);
+  background: rgba(248,250,252,.85);
+  transform: translateY(-1px);
+}
+button.ghost:active { transform: translateY(0); }
+
+/* === 表單欄位 === */
+.field { margin-bottom: 18px; }
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--ink-2);
+  font-size: 13px;
+}
 .field input[type=text] {
-  width: 100%; padding: 12px 14px; font-size: 15px;
-  border: 1.5px solid #f3d4b1; border-radius: 10px; background: #fffaf3;
-  font-family: inherit; transition: all .15s;
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-family: inherit;
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+  color: var(--ink-1);
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.04);
+}
+.field input[type=text]:hover {
+  border-color: var(--line-2);
+  background: rgba(255,255,255,.85);
 }
 .field input[type=text]:focus {
-  outline: none; border-color: #ea580c; background: #fff;
-  box-shadow: 0 0 0 3px rgba(251,146,60,.18);
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, .14), inset 0 1px 2px rgba(15,23,42,.04);
 }
-.field .hint { font-size: 12px; color: #a08773; margin-top: 4px; }
-/* Result page */
-.result-header { text-align: center; padding: 8px 0 20px; }
+.field .hint { font-size: 12px; color: var(--ink-5); margin-top: 4px; }
+
+/* === 結果頁 === */
+.result-header { padding: 4px 0 18px; }
 .result-header .badge {
-  display: inline-block; background: #ea580c; color: #fff;
-  padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
-  letter-spacing: 1px; margin-bottom: 10px;
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  margin-bottom: 10px;
 }
-.result-header h2 { margin: 0 0 4px; color: #1f1a12; font-size: 22px; }
-.result-header p { margin: 0; color: #78635a; font-size: 14px; }
+.result-header h2 {
+  margin: 0 0 4px;
+  color: var(--ink-1);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.result-header p { margin: 0; color: var(--ink-5); font-size: 13.5px; }
+
 .summary {
-  background: #fff7ec; border-left: 4px solid #ea580c;
-  padding: 14px 16px; border-radius: 8px; margin-bottom: 18px;
-  font-size: 14px;
+  background: var(--bg-1);
+  border: 1.5px solid var(--line);
+  border-left: 4px solid var(--accent);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 18px;
+  font-size: 13.5px;
+  color: var(--ink-3);
+  line-height: 1.7;
 }
-.summary b { color: #c2410c; }
+.summary b { color: var(--ink-1); font-weight: 600; }
+
 .track {
-  margin-bottom: 14px; border: 1.5px solid #f3d4b1;
-  border-radius: 12px; overflow: hidden; background: #fff;
-  transition: all .15s;
+  margin-bottom: 12px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: rgba(255,255,255,.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+}
+.track:hover {
+  border-color: var(--line-2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(15,23,42,.06);
 }
 .track.checked {
-  border-color: #ea580c;
-  box-shadow: 0 0 0 3px rgba(251,146,60,.18);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px rgba(234, 88, 12, .14),
+    0 4px 14px rgba(234, 88, 12, .1);
+  transform: translateY(-1px);
 }
 .track-head {
-  padding: 14px 18px; display: flex; align-items: center; gap: 12px;
-  border-bottom: 1px solid #f7e0c1; cursor: pointer;
-  background: #fffaf3;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1.5px solid var(--line);
+  cursor: pointer;
+  background: var(--card);
+  transition: background .15s;
 }
-.track-head:hover { background: #fff3e3; }
+.track-head:hover { background: var(--bg-1); }
+.track.checked .track-head { background: var(--accent-50); }
 .track-head input[type=checkbox] {
-  width: 20px; height: 20px; accent-color: #ea580c; cursor: pointer;
+  width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;
 }
 .track-tag {
-  font-size: 12px; font-weight: 700; padding: 4px 10px;
-  border-radius: 6px; letter-spacing: 1px;
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: .5px;
+  border: 1.5px solid;
 }
-.tag-must { background: #fee2e2; color: #b91c1c; }
-.tag-rec  { background: #ffedd5; color: #c2410c; }
-.tag-opt  { background: #e0e7ff; color: #4338ca; }
-.track-title { flex: 1; font-weight: 700; font-size: 16px; color: #1f1a12; }
-.track-why { color: #78635a; font-size: 13px; }
-.track-body { padding: 6px 18px 14px; }
+.tag-must { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.tag-rec  { background: var(--accent-50); color: var(--accent-deep); border-color: var(--accent-200); }
+.tag-opt  { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
+.track-title { flex: 1; font-weight: 600; font-size: 15px; color: var(--ink-1); }
+.track-why { color: var(--ink-4); font-size: 13px; line-height: 1.6; }
+.track-body { padding: 12px 16px 14px; }
+
 .session {
-  display: flex; align-items: center; gap: 10px; padding: 9px 0;
-  border-bottom: 1px dashed #f3d4b1; font-size: 14px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 13.5px;
 }
 .session:last-child { border-bottom: none; }
-.session .date { font-weight: 600; color: #c2410c; min-width: 110px; }
-.session .room { color: #78635a; font-size: 12px; }
-.session .topic { flex: 1; }
-/* Suggest topic box */
+.session .date { font-weight: 600; color: var(--accent-deep); min-width: 100px; }
+.session .room { color: var(--ink-5); font-size: 12px; }
+.session .topic { flex: 1; color: var(--ink-2); }
+
+/* === 主題建議框 === */
 .suggest-box {
-  margin: 18px 0; padding: 16px 18px;
-  border: 1.5px solid #f3d4b1; border-radius: 12px;
-  background: #fffaf3;
+  margin: 16px 0;
+  padding: 14px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all .25s cubic-bezier(.4,0,.2,1);
 }
 .suggest-box.highlight {
-  border: 2px solid #ea580c; background: #fff1e0;
-  box-shadow: 0 4px 14px rgba(234,88,12,.12);
+  border: 1.5px solid var(--accent);
+  background: var(--accent-50);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, .12);
 }
 .suggest-box label {
   display: block; margin-bottom: 8px; font-weight: 600;
-  color: #1f1a12; font-size: 14px;
+  color: var(--ink-2); font-size: 13.5px;
 }
-.suggest-box.highlight label { color: #c2410c; font-size: 15px; }
+.suggest-box.highlight label { color: var(--accent-deep); }
 .suggest-box textarea {
-  width: 100%; padding: 12px 14px; font-size: 14px;
-  border: 1.5px solid #f3d4b1; border-radius: 8px;
-  background: #fff; font-family: inherit; resize: vertical; min-height: 70px;
+  width: 100%; padding: 10px 14px; font-size: 13.5px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  font-family: inherit;
+  resize: vertical;
+  min-height: 70px;
   transition: all .15s;
+  color: var(--ink-1);
 }
 .suggest-box textarea:focus {
-  outline: none; border-color: #ea580c;
-  box-shadow: 0 0 0 3px rgba(251,146,60,.18);
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, .08);
 }
-/* Online courses section */
+
+/* === 線上課程區 === */
 .online-section {
-  margin: 22px 0 14px;
-  border: 2px dashed #94a3b8;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  margin: 18px 0 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(248,250,252,.7);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
   overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
 }
 .online-head {
-  padding: 16px 18px;
-  display: flex; align-items: center; gap: 14px;
-  border-bottom: 1px dashed #cbd5e1;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1.5px solid var(--line);
+  background: rgba(255,255,255,.55);
 }
-.online-icon { font-size: 28px; line-height: 1; }
-.online-title { font-weight: 700; font-size: 16px; color: #1e293b; }
-.online-sub   { font-size: 12px; color: #64748b; margin-top: 2px; }
-.online-list { padding: 8px 12px; }
+.online-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.online-title { font-weight: 600; font-size: 14.5px; color: var(--ink-1); }
+.online-sub   { font-size: 12px; color: var(--ink-5); margin-top: 2px; }
+.online-list { padding: 8px; }
 .online-item {
-  display: block; padding: 12px 14px; margin: 6px 0;
-  background: #fff; border-radius: 8px;
+  display: block; padding: 11px 14px; margin: 4px 0;
+  background: rgba(255,255,255,.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--radius-sm);
   text-decoration: none; color: inherit;
-  border: 1px solid #e2e8f0;
-  transition: all .15s;
+  border: 1.5px solid var(--line);
+  transition: all .25s cubic-bezier(.4,0,.2,1);
 }
 .online-item:hover {
-  border-color: #2563eb; background: #eff6ff;
-  transform: translateX(2px);
+  border-color: var(--blue);
+  background: rgba(239,246,255,.9);
+  transform: translateX(3px);
+  box-shadow: 0 4px 12px rgba(37,99,235,.1);
 }
-.online-item-title {
-  font-weight: 600; color: #1e40af; font-size: 14px;
-}
-.online-arrow { color: #64748b; font-weight: 400; }
-.online-item-desc {
-  font-size: 12px; color: #64748b; margin-top: 4px;
-}
+.online-item-title { font-weight: 600; color: #1e40af; font-size: 13.5px; }
+.online-arrow { color: var(--ink-5); font-weight: 400; font-size: 12px; }
+.online-item-desc { font-size: 12px; color: var(--ink-5); margin-top: 4px; }
+
+/* === 底部黏著列 === */
 .enroll-bar {
   position: sticky; bottom: 0; left: 0; right: 0;
-  background: #fff; border-top: 2px solid #ea580c;
-  padding: 14px 18px; margin: 18px -24px -24px;
-  display: flex; align-items: center; gap: 12px;
-  box-shadow: 0 -4px 12px rgba(234,88,12,.12);
+  background: rgba(255,255,255,.78);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border-top: 1.5px solid var(--line);
+  padding: 14px 16px;
+  margin: 18px -28px -28px;
+  display: flex; align-items: center; gap: 10px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: 0 -2px 12px rgba(15,23,42,.04), inset 0 1px 0 rgba(255,255,255,.6);
 }
 .enroll-bar .count {
-  flex: 1; font-size: 14px; color: #78635a;
+  flex: 1; font-size: 13px; color: var(--ink-4);
 }
-.enroll-bar .count b { color: #c2410c; font-size: 16px; }
+.enroll-bar .count b { color: var(--ink-1); font-weight: 600; }
+
 .actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; justify-content: center; }
 .foot {
-  margin-top: 24px; text-align: center; color: #a08773; font-size: 12px;
+  margin-top: 24px; text-align: center; color: var(--ink-5); font-size: 12px;
 }
-.foot strong { color: #c2410c; }
-/* Success / error overlays */
+.foot strong { color: var(--accent-deep); }
+
+/* === Toast === */
 .toast {
   position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  background: #fff; border-radius: 10px; padding: 14px 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.18);
-  font-size: 14px; font-weight: 600;
-  z-index: 1000; animation: slideDown .3s ease;
+  background: var(--ink-1);
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+  font-size: 13.5px; font-weight: 500;
+  z-index: 1000;
+  animation: slideDown .3s cubic-bezier(.4,0,.2,1);
+  max-width: 90vw;
 }
-.toast.success { background: #dcfce7; color: #15803d; border-left: 4px solid #22c55e; }
-.toast.error   { background: #fee2e2; color: #b91c1c; border-left: 4px solid #ef4444; }
-@keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
-.thanks {
-  text-align: center; padding: 40px 20px 24px;
+.toast.success { background: #065f46; }
+.toast.error   { background: #991b1b; }
+@keyframes slideDown {
+  from { opacity: 0; transform: translate(-50%, -16px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
+
+/* === 致謝頁 === */
+.thanks { text-align: center; padding: 32px 16px 16px; }
 .thanks .check {
-  width: 70px; height: 70px; margin: 0 auto 16px;
-  border-radius: 50%; background: #dcfce7;
+  width: 64px; height: 64px; margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  border: 1.5px solid #a7f3d0;
   display: flex; align-items: center; justify-content: center;
-  color: #15803d; font-size: 36px;
+  color: #047857; font-size: 30px;
 }
-.thanks h2 { color: #1f1a12; margin: 0 0 8px; }
-.thanks p { color: #78635a; margin: 0 0 18px; }
+.thanks h2 { color: var(--ink-1); margin: 0 0 8px; font-size: 20px; font-weight: 700; }
+.thanks p { color: var(--ink-4); margin: 0 0 18px; font-size: 14px; }
+
 .enroll-cta {
-  margin: 18px auto 12px; padding: 22px 20px;
-  background: linear-gradient(135deg, #fff1e0 0%, #ffe0c0 100%);
-  border: 2px solid #ea580c; border-radius: 14px;
+  margin: 18px auto 12px;
+  padding: 22px 20px;
+  background: var(--accent-50);
+  border: 1.5px solid var(--accent-200);
+  border-radius: var(--radius-md);
   max-width: 540px;
+  text-align: left;
 }
-.enroll-cta h3 { margin: 0 0 8px; color: #c2410c; font-size: 17px; }
-.enroll-cta p  { margin: 0 0 14px; color: #78635a; font-size: 14px; }
+.enroll-cta h3 { margin: 0 0 6px; color: var(--ink-1); font-size: 15px; font-weight: 700; }
+.enroll-cta p  { margin: 0 0 14px; color: var(--ink-3); font-size: 13.5px; }
 .enroll-list {
-  background: #fff; border-radius: 8px; padding: 12px 14px; margin: 0 0 14px;
-  text-align: left; font-size: 13px; color: #2c2418; max-height: 140px; overflow-y: auto;
+  background: var(--card);
+  border: 1.5px solid var(--accent-200);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px; margin: 0 0 14px;
+  font-size: 13px; color: var(--ink-2);
+  max-height: 140px; overflow-y: auto;
 }
-.enroll-list .item { padding: 4px 0; border-bottom: 1px dashed #f3d4b1; }
+.enroll-list .item { padding: 4px 0; border-bottom: 1px dashed var(--accent-200); }
 .enroll-list .item:last-child { border-bottom: none; }
 .enroll-link {
-  display: inline-block; padding: 14px 28px; background: #ea580c; color: #fff;
-  text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px;
-  box-shadow: 0 4px 12px rgba(234,88,12,.3); transition: all .15s;
+  display: inline-block; padding: 11px 22px;
+  background: var(--accent);
+  color: #fff; text-decoration: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600; font-size: 14px;
+  box-shadow: 0 1px 2px rgba(234, 88, 12, .2);
+  transition: all .15s;
 }
-.enroll-link:hover { background: #c2410c; box-shadow: 0 6px 18px rgba(234,88,12,.4); transform: translateY(-1px); }
+.enroll-link:hover {
+  background: var(--accent-deep);
+  box-shadow: 0 2px 6px rgba(234, 88, 12, .3);
+}
 .enroll-skip {
-  display: block; margin-top: 14px; color: #a08773;
+  display: block; margin-top: 16px; color: var(--ink-5);
   font-size: 13px; text-decoration: none;
 }
-.enroll-skip:hover { color: #c2410c; text-decoration: underline; }
-@media (max-width: 520px) {
-  header.hero h1 { font-size: 19px; }
-  .card { padding: 18px; }
-  h2.q { font-size: 17px; }
-  .enroll-bar { margin: 18px -18px -18px; padding: 12px 14px; flex-wrap: wrap; }
+.enroll-skip:hover { color: var(--accent-deep); text-decoration: underline; }
+
+@media (max-width: 600px) {
+  .wrap { padding: 16px 14px 60px; }
+  header.hero { padding: 12px 14px; flex-wrap: wrap; }
+  .hero-chips { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+  .hero-title h1 { font-size: 15px; white-space: normal; }
+  .card { padding: 20px; border-radius: var(--radius); }
+  h2.q { font-size: 18px; }
+  .enroll-bar { margin: 18px -20px -20px; padding: 10px 14px; flex-wrap: wrap; }
+  .tab-item { font-size: 11.5px; padding: 8px 4px; }
+}
+
+/* === Focus visible — 鍵盤可訪問性 === */
+button:focus-visible,
+.opt:focus-within,
+.online-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .25);
+}
+input:focus-visible { outline: none; }
+
+/* 減少動效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .liquid-bg::before, .liquid-bg::after, .blob,
+  .progress > div, .opt::after { animation: none !important; }
+  * { transition-duration: .01s !important; }
 }
 </style>
 </head>
 <body>
+<div class="liquid-bg">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+</div>
+<div class="glass-veil"></div>
 <div class="wrap">
   <header class="hero">
-    <h1>奇美醫院 AI 培訓 · 智能選課</h1>
-    <p>填寫資料、回答問題，獲得個人化推薦課程</p>
+    <div class="hero-title">
+      <h1>奇美 AI 培訓 · 智能選課<span class="ver">v1</span></h1>
+      <p>個人化推薦課程 · 數位化選課流程</p>
+    </div>
+    <div class="hero-chips">
+      <span class="chip green" id="chipRole">專業員工</span>
+      <span class="chip orange" id="chipJob">未填寫</span>
+      <span class="chip purple" id="chipStep">第 1 步</span>
+    </div>
   </header>
+  <div class="tab-dock" id="tabDock"></div>
   <div class="progress"><div id="bar" style="width:0%"></div></div>
   <div id="app" class="card"></div>
   <div class="foot">
-    製作：深耕計畫辦公室、AI Everywhere 小組 <strong></strong>
+    製作:深耕計畫辦公室 · AI Everywhere 小組
   </div>
 </div>
 <script>
 // ============================================================
-//  ⚠️  必填：請把您部署 Apps Script Web App 後拿到的網址貼在這裡
-//  範例：https://script.google.com/macros/s/AKfycbz.../exec
+//  ⚠️  必填:請部署 App
 // ============================================================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyc5No-9rshpIoEBroFJCrW6Gzgh6us3NHVBSep2ekDGDddG540L15f0L9ppNAoOn3E/exec";
-// 正式報名表單連結（同仁送出意願後會看到，點擊前往 Microsoft Forms 完成報名）
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhuT0DlJWvklym9BefxFnvUhuhUro9XkYuHLvhcZ5awuLhVknrmAcTCXYhFafn86e7/exec";
+// 正式報名表單連結(同仁送出意願後會看到,點擊前往 Microsoft Forms 完成報名)
 const REGISTRATION_URL = "https://forms.cloud.microsoft/r/Qtzps8P76R";
 // ====== Course catalog (from poster) ======
 const A_SESSIONS = [
@@ -312,64 +935,64 @@ const S_SESSIONS = {
 };
 // ====== Questions ======
 const Q = [
-  { key:"role", title:"您的職級為何？", opts:[
+  { key:"role", title:"您的職級為何?", opts:[
       { v:"apex",  label:"一二級主管" },
       { v:"p3",    label:"三級主管"   },
       { v:"p4",    label:"四級主管"   },
       { v:"staff", label:"專業員工"   }
     ]},
-  { key:"job", title:"您的職類為何？", opts:[
+  { key:"job", title:"您的職類為何?", opts:[
       { v:"nurse",  label:"護理"  },
       { v:"doctor", label:"醫師"  },
       { v:"allied", label:"醫事"  },
       { v:"admin",  label:"行政"  },
       { v:"it",     label:"資訊"  }
     ]},
-  { key:"level", title:"您目前對生成式 AI 工具的熟悉度？", opts:[
-      { v:"none",  label:"入門（從未使用，或只試過 1–2 次）" },
-      { v:"some",  label:"基礎（請 AI 改寫文字、圖片、詢問問題）" },
-      { v:"often", label:"熟練（會用 prompt 技巧、能把 AI 串到日常工作流）" },
-      { v:"power", label:"進階（會自建 GPTs / Agent / RAG 系統，能判斷模型限制與準確度）" }
+  { key:"level", title:"您目前對生成式 AI 工具的熟悉度?", opts:[
+      { v:"none",  label:"入門(從未使用,或只試過 1–2 次)" },
+      { v:"some",  label:"基礎(請 AI 改寫文字、圖片、詢問問題)" },
+      { v:"often", label:"熟練(會用 prompt 技巧、能把 AI 串到日常工作流)" },
+      { v:"power", label:"進階(會自建 GPTs / Agent / RAG 系統,能判斷模型限制與準確度)" }
     ]},
-  { key:"freq", title:"您每週使用 AI 工具的頻率？", opts:[
-      { v:"never",  label:"幾乎不用（< 1 次／週）" },
-      { v:"low",    label:"偶爾使用（1–3 次／週）" },
-      { v:"high",   label:"經常使用（4–10 次／週）" },
-      { v:"daily",  label:"高頻使用（每天多次，已是工作流核心）" }
+  { key:"freq", title:"您每週使用 AI 工具的頻率?", opts:[
+      { v:"never",  label:"幾乎不用(< 1 次/週)" },
+      { v:"low",    label:"偶爾使用(1–3 次/週)" },
+      { v:"high",   label:"經常使用(4–10 次/週)" },
+      { v:"daily",  label:"高頻使用(每天多次,已是工作流核心)" }
     ]},
-  { key:"tool", title:"您目前最常使用的生成式 AI 工具？", type:"with_other", opts:[
-      { v:"chatgpt",    label:"ChatGPT（GPT-4 / GPT-5）" },
+  { key:"tool", title:"您目前最常使用的生成式 AI 工具?", type:"with_other", opts:[
+      { v:"chatgpt",    label:"ChatGPT(GPT-4 / GPT-5)" },
       { v:"claude",     label:"Claude / Claude Code" },
       { v:"gemini",     label:"Gemini" },
       { v:"perplexity", label:"Perplexity" },
       { v:"notebooklm", label:"NotebookLM" },
       { v:"grok",       label:"Grok" },
       { v:"manus",      label:"Manus" },
-      { v:"other",      label:"其他（請於下方輸入工具名稱）" }
+      { v:"other",      label:"其他(請於下方輸入工具名稱)" }
     ]},
-  { key:"goal", title:"接下來半年，您最想用 AI 解決什麼？", opts:[
+  { key:"goal", title:"接下來半年,您最想用 AI 解決什麼?", opts:[
       { v:"productivity", label:"提升個人工作效率" },
-      { v:"clinical",     label:"臨床／衛教場景應用" },
+      { v:"clinical",     label:"臨床/衛教場景應用" },
       { v:"research",     label:"醫學研究與文獻整理" },
-      { v:"automation",   label:"報表／公文／流程自動化" },
-      { v:"build",        label:"想做出部門 AI 助理／系統整合" }
+      { v:"automation",   label:"報表/公文/流程自動化" },
+      { v:"build",        label:"想做出部門 AI 助理/系統整合" }
     ]},
-  { key:"time", title:"您每月可投入學習新工具的時間？", opts:[
-      { v:"min",  label:"很有限（< 4 小時／月）" },
-      { v:"med",  label:"適中（4–8 小時／月）"   },
-      { v:"high", label:"充裕（8–16 小時／月）"  },
-      { v:"max",  label:"全力投入（> 16 小時／月，幾乎天天有時間學）" }
+  { key:"time", title:"您每月可投入學習新工具的時間?", opts:[
+      { v:"min",  label:"很有限(< 4 小時/月)" },
+      { v:"med",  label:"適中(4–8 小時/月)"   },
+      { v:"high", label:"充裕(8–16 小時/月)"  },
+      { v:"max",  label:"全力投入(> 16 小時/月,幾乎天天有時間學)" }
     ]},
-  { key:"task", title:"您是否有「特定專案」想先解決？", opts:[
+  { key:"task", title:"您是否有「特定專案」想先解決?", opts:[
       { v:"none",   label:"暫無特定專案"       },
-      { v:"report", label:"報表自動化／會議紀錄" },
+      { v:"report", label:"報表自動化/會議紀錄" },
       { v:"edu",    label:"病人衛教短影音"       },
-      { v:"lit",    label:"醫學文獻檢索／綜述"   },
-      { v:"chart",  label:"預診摘要／病歷草擬"   },
-      { v:"agent",  label:"部門知識助理／RAG 系統" }
+      { v:"lit",    label:"醫學文獻檢索/綜述"   },
+      { v:"chart",  label:"預診摘要/病歷草擬"   },
+      { v:"agent",  label:"部門知識助理/RAG 系統" }
     ]}
 ];
-// 已知的生成式 AI 工具關鍵字（用於判斷「其他」欄位輸入是否屬於 GAI）
+// 已知的生成式 AI 工具關鍵字(用於判斷「其他」欄位輸入是否屬於 GAI)
 const GAI_TOOL_KEYWORDS = [
   "claude","anthropic","gpt","chatgpt","openai","o1","o3",
   "gemini","bard","google ai","grok","xai",
@@ -388,22 +1011,22 @@ function isGAITool(text) {
   if (!t) return false;
   return GAI_TOOL_KEYWORDS.some(kw => t.includes(kw));
 }
-// 免費線上課程（不論推薦結果為何，永遠出現）
+// 免費線上課程(不論推薦結果為何,永遠出現)
 const ONLINE_COURSES = [
   { title:"Google Skills · 生成式 AI 入門課程",
     url:"https://www.skills.google/course_templates/1081?locale=zh_TW",
-    desc:"Google 官方繁中課程，從零認識 GAI 概念與應用" },
+    desc:"Google 官方繁中課程,從零認識 GAI 概念與應用" },
   { title:"Google · AI 認證學習路徑",
     url:"https://educertifications.google/",
-    desc:"Google 完整 AI / Cloud 認證地圖，可選擇職涯路徑學習" },
+    desc:"Google 完整 AI / Cloud 認證地圖,可選擇職涯路徑學習" },
   { title:"Coursera · AI in Healthcare 專修",
     url:"https://www.coursera.org/specializations/ai-healthcare?action=enroll",
-    desc:"Stanford 醫療 AI 專業課程（可申請助學金免費修）" }
+    desc:"Stanford 醫療 AI 專業課程(可申請助學金免費修)" }
 ];
 // ====== Label maps ======
 const ROLE_LABEL = {apex:"一二級主管 (Apex)", p3:"三級主管 (Pillars)", p4:"四級主管 (Pillars)", staff:"專業員工 (Foundation)"};
 const JOB_LABEL  = {nurse:"護理", doctor:"醫師", allied:"醫事", admin:"行政", it:"資訊"};
-const LEVEL_LABEL= {none:"入門（從未使用）", some:"基礎（會問問題、改寫文字）", often:"熟練（會 prompt、串入工作流）", power:"進階（會建 GPTs / Agent / RAG）"};
+const LEVEL_LABEL= {none:"入門(從未使用)", some:"基礎(會問問題、改寫文字)", often:"熟練(會 prompt、串入工作流)", power:"進階(會建 GPTs / Agent / RAG)"};
 const FREQ_LABEL = {never:"幾乎不用", low:"1–3 次/週", high:"4–10 次/週", daily:"每天多次"};
 const TOOL_LABEL = {chatgpt:"ChatGPT", claude:"Claude / Claude Code", gemini:"Gemini", perplexity:"Perplexity", notebooklm:"NotebookLM", grok:"Grok", manus:"Manus", other:"其他"};
 const GOAL_LABEL = {productivity:"提升個人效率", clinical:"臨床/衛教場景", research:"醫學研究/文獻", automation:"報表/公文自動化", build:"部門 AI 助理/系統整合"};
@@ -419,12 +1042,51 @@ const state = {
 };
 const app = document.getElementById("app");
 const bar = document.getElementById("bar");
+const tabDock = document.getElementById("tabDock");
+const chipRole = document.getElementById("chipRole");
+const chipJob  = document.getElementById("chipJob");
+const chipStep = document.getElementById("chipStep");
+
+// === Tab dock 群組 — 將 9 步驟壓縮為 5 個視覺 tab ===
+const TAB_GROUPS = [
+  { name: "基本資料", steps: [0] },
+  { name: "身份",     steps: [1, 2] },
+  { name: "經驗",     steps: [3, 4, 5] },
+  { name: "目標",     steps: [6, 7] },
+  { name: "結果",     steps: [8, 9] }
+];
+
+function renderTabDock() {
+  let activeIdx = -1;
+  TAB_GROUPS.forEach((g, i) => { if (g.steps.includes(state.step)) activeIdx = i; });
+  if (state.submitted) activeIdx = TAB_GROUPS.length - 1;
+  tabDock.innerHTML = TAB_GROUPS.map((g, i) => {
+    const cls = i === activeIdx ? 'active' : (i < activeIdx ? 'done' : '');
+    return `<div class="tab-item ${cls}">${g.name}</div>`;
+  }).join("");
+}
+
+function updateChips() {
+  const a = state.ans;
+  if (a.role) chipRole.textContent = ROLE_LABEL[a.role].split(" ")[0];
+  else chipRole.textContent = "未選擇";
+  if (a.job)  chipJob.textContent  = JOB_LABEL[a.job];
+  else chipJob.textContent  = "未選擇";
+  if (state.submitted) {
+    chipStep.textContent = "已完成";
+  } else {
+    chipStep.textContent = `第 ${Math.min(state.step + 1, TOTAL_STEPS)} 步 / ${TOTAL_STEPS}`;
+  }
+}
+
 function setProgress() {
   const pct = state.submitted ? 100 : (state.step / TOTAL_STEPS) * 100;
   bar.style.width = pct + "%";
 }
 function render() {
   setProgress();
+  renderTabDock();
+  updateChips();
   if (state.submitted) return renderThanks();
   if (state.step === 0) return renderIntro();
   if (state.step <= Q.length) return renderQuestion(state.step - 1);
@@ -435,11 +1097,11 @@ function renderIntro() {
     <span class="q-num">第 1 步 / ${TOTAL_STEPS}</span>
     <h2 class="q">請先填寫您的基本資料</h2>
     <div class="field">
-      <label for="name">姓名 <span style="color:#ef4444">*</span></label>
+      <label for="name">姓名 <span style="color:#dc2626">*</span></label>
       <input type="text" id="name" value="${escapeAttr(state.info.name)}" placeholder="請輸入您的姓名">
     </div>
     <div class="field">
-      <label for="empId">人事號 <span style="color:#ef4444">*</span></label>
+      <label for="empId">人事號 <span style="color:#dc2626">*</span></label>
       <input type="text" id="empId" value="${escapeAttr(state.info.empId)}" placeholder="請輸入您的人事號">
       <div class="hint">用於後續報名意願統計使用</div>
     </div>
@@ -507,6 +1169,7 @@ function renderQuestion(idx) {
         const wrap = document.getElementById('otherWrap');
         wrap.style.display = e.target.value === 'other' ? 'block' : 'none';
       }
+      updateChips();
       checkNext();
     });
   });
@@ -523,7 +1186,7 @@ function renderQuestion(idx) {
 }
 // ====== Recommendation engine ======
 function recommend(a) {
-  // -------- 早退條件：以下情境不推薦任何院內課程，僅顯示免費線上資源 --------
+  // -------- 早退條件:以下情境不推薦任何院內課程,僅顯示免費線上資源 --------
   // 1. 每月可投入時間 < 4 小時
   if (a.time === "min") return [];
   // 2. 工具填「其他」且輸入內容非 GAI 工具
@@ -532,29 +1195,29 @@ function recommend(a) {
   // -------- A 班 --------
   let aTag = "must", aWhy = "";
   if (a.level === "power" && a.time === "min") {
-    aTag = "opt"; aWhy = "您已是進階使用者且時間有限，可僅挑一場補齊「醫療 GenAI 法律 / 倫理 / 資安紅線」內容。";
+    aTag = "opt"; aWhy = "您已是進階使用者且時間有限,可僅挑一場補齊「醫療 GenAI 法律 / 倫理 / 資安紅線」內容。";
   } else if (a.level === "power") {
-    aTag = "rec"; aWhy = "雖已熟練，建議仍挑一場 A 班完整聽法律倫理與奇美內部紅線。";
+    aTag = "rec"; aWhy = "雖已熟練,建議仍挑一場 A 班完整聽法律倫理與奇美內部紅線。";
   } else {
-    aWhy = "A 班是所有後續 B/S 班的入門基礎，涵蓋醫療 GenAI 法規倫理、工具實作與簡報自動化工作流。";
+    aWhy = "A 班是所有後續 B/S 班的入門基礎,涵蓋醫療 GenAI 法規倫理、工具實作與簡報自動化工作流。";
   }
   let aPick = A_SESSIONS;
   if (a.time === "min") aPick = [A_SESSIONS[0]];
-  recs.push({ id:"A", tag:aTag, code:"A 班 · GenAI 基礎應用班", title:"任選一場（內容相同）", why:aWhy,
+  recs.push({ id:"A", tag:aTag, code:"A 班 · GenAI 基礎應用班", title:"任選一場(內容相同)", why:aWhy,
     sessions: aPick.map(s => ({ date:s.date, time:s.time, room:s.room, topic:`${s.code} GenAI 基礎應用班` }))
   });
   // -------- B 班 --------
   let bTag = null, bWhy = "";
   if (a.job === "it" || a.goal === "build" || a.task === "agent") {
-    bTag = "must"; bWhy = "您的職類／目標是「系統整合 / 部門 AI 助理」，B 班是核心；須完整出席同一梯兩堂。";
+    bTag = "must"; bWhy = "您的職類/目標是「系統整合 / 部門 AI 助理」,B 班是核心;須完整出席同一梯兩堂。";
   } else if (a.job === "doctor" && (a.goal === "research" || a.task === "lit")) {
-    bTag = "must"; bWhy = "醫師＋研究 / 文獻場景，B 班的 RAG 與向量資料庫是必備。";
+    bTag = "must"; bWhy = "醫師＋研究 / 文獻場景,B 班的 RAG 與向量資料庫是必備。";
   } else if (a.role === "p3" || a.role === "p4" || a.role === "apex") {
-    bTag = "rec"; bWhy = "主管角色建議認識 RAG / Agent，方便評估部門 AI 專案；可選任一梯。";
+    bTag = "rec"; bWhy = "主管角色建議認識 RAG / Agent,方便評估部門 AI 專案;可選任一梯。";
   } else if (a.time === "high" || a.time === "max") {
-    bTag = "rec"; bWhy = "您時間充裕，建議加修 B 班加深對 RAG 與 Agent 的判斷力。";
+    bTag = "rec"; bWhy = "您時間充裕,建議加修 B 班加深對 RAG 與 Agent 的判斷力。";
   } else if (a.level === "power") {
-    bTag = "opt"; bWhy = "已是進階使用者，可選修 B 班把工具串成工作流。";
+    bTag = "opt"; bWhy = "已是進階使用者,可選修 B 班把工具串成工作流。";
   }
   if (bTag) {
     const bSessions = [];
@@ -626,37 +1289,37 @@ function renderResult() {
   state._recs = recs; // cache for submit
   const counts = { must:0, rec:0, opt:0 };
   recs.forEach(r => counts[r.tag]++);
-  // 早退原因（用於空推薦時的解釋文字）
+  // 早退原因(用於空推薦時的解釋文字)
   let emptyReason = "";
   if (recs.length === 0) {
     if (a.time === "min") {
-      emptyReason = "您每月可投入學習時間較少（< 4 小時／月），目前院內課程最短也需 3–4 小時，故本次暫不推薦。建議可從下方「免費線上課程」學習，下一梯次有更多時間時歡迎參加。";
+      emptyReason = "您每月可投入學習時間較少(< 4 小時/月),目前院內課程最短也需 3–4 小時,故本次暫不推薦。建議可從下方「免費線上課程」學習,下一梯次有更多時間時歡迎參加。";
     } else if (a.tool === "other" && !isGAITool(state.toolOther)) {
-      emptyReason = `您填寫的工具「${escapeHtml(state.toolOther)}」非屬本次課程項目，故本次暫不推薦。`;
+      emptyReason = `您填寫的工具「${escapeHtml(state.toolOther)}」非屬本次課程項目,故本次暫不推薦。`;
     }
   }
-  // 工具顯示文字（含其他輸入的內容）
+  // 工具顯示文字(含其他輸入的內容)
   const toolDisplay = a.tool === "other"
-    ? `其他：${escapeHtml(state.toolOther||"")}`
+    ? `其他:${escapeHtml(state.toolOther||"")}`
     : TOOL_LABEL[a.tool];
   app.innerHTML = `
     <div class="result-header">
       <span class="badge">您的個人化推薦</span>
       ${recs.length > 0
-        ? `<h2>共 ${recs.length} 門課程建議（強烈建議 ${counts.must} · 建議 ${counts.rec} · 選修 ${counts.opt}）</h2>
-           <p>勾選您「想實際報名」的課程，下方按鈕送出</p>`
+        ? `<h2>共 ${recs.length} 門課程建議(強烈建議 ${counts.must} · 建議 ${counts.rec} · 選修 ${counts.opt})</h2>
+           <p>勾選您「想實際報名」的課程,下方按鈕送出</p>`
         : `<h2>本次暫無院內課程推薦</h2>
            <p>但仍可參考下方「免費線上課程」開始學習</p>`}
     </div>
     <div class="summary">
-      <b>${escapeHtml(state.info.name)}</b>（人事號 ${escapeHtml(state.info.empId)}）<br>
-      ${ROLE_LABEL[a.role]}　·　${JOB_LABEL[a.job]}　·　AI 熟悉度：${LEVEL_LABEL[a.level]}　·　使用頻率：${FREQ_LABEL[a.freq]}<br>
-      <b>常用工具：</b>${toolDisplay}　|　<b>目標：</b>${GOAL_LABEL[a.goal]}<br>
-      <b>每月可投入：</b>${TIME_LABEL[a.time]}　|　<b>特定任務：</b>${TASK_LABEL[a.task]}
+      <b>${escapeHtml(state.info.name)}</b>(人事號 ${escapeHtml(state.info.empId)})<br>
+      ${ROLE_LABEL[a.role]}　·　${JOB_LABEL[a.job]}　·　AI 熟悉度:${LEVEL_LABEL[a.level]}　·　使用頻率:${FREQ_LABEL[a.freq]}<br>
+      <b>常用工具:</b>${toolDisplay}　|　<b>目標:</b>${GOAL_LABEL[a.goal]}<br>
+      <b>每月可投入:</b>${TIME_LABEL[a.time]}　|　<b>特定任務:</b>${TASK_LABEL[a.task]}
     </div>
     ${emptyReason ? `
-      <div class="summary" style="background:#fef3c7;border-left-color:#d97706;">
-        <b style="color:#92400e">說明：</b>${emptyReason}
+      <div class="summary" style="background:#fffbeb;border-color:#fde68a;border-left-color:#d97706;">
+        <b style="color:#92400e">說明:</b>${emptyReason}
       </div>
     ` : ""}
     ${recs.map(r => {
@@ -672,7 +1335,7 @@ function renderResult() {
             <div class="track-why">${r.why}</div>
             ${r.sessions.map(s => s.date.startsWith("【") ? `
               <div class="session" style="border:none;padding:8px 0 2px;">
-                <span style="font-weight:600;color:#78635a;font-size:13px;">${s.date}</span>
+                <span style="font-weight:600;color:var(--ink-4);font-size:13px;">${s.date}</span>
               </div>` : `
               <div class="session">
                 <span class="date">${s.date}</span>
@@ -682,12 +1345,12 @@ function renderResult() {
         </div>
       `;
     }).join("")}
-    <!-- 課程主題建議 — 開放式回饋（特別重要：捕捉沒有被推薦的人的需求）-->
+    <!-- 課程主題建議 — 開放式回饋(特別重要:捕捉沒有被推薦的人的需求)-->
     <div class="suggest-box ${recs.length === 0 ? 'highlight' : ''}">
       <label for="suggestTopic">
         ${recs.length === 0
-          ? '⚡ 您希望未來看到哪些 AI 課程主題？您的回饋將是未來課程規劃重要的參考'
-          : '想建議辦公室新增的課程主題？（選填）'}
+          ? '⚡ 您希望未來看到哪些 AI 課程主題?您的回饋將是未來課程規劃重要的參考'
+          : '想建議院方新增的課程主題?(選填)'}
       </label>
       <textarea id="suggestTopic" rows="3" placeholder=""></textarea>
     </div>
@@ -697,7 +1360,7 @@ function renderResult() {
         <span class="online-icon">🎓</span>
         <div>
           <div class="online-title">免費線上課程</div>
-          <div class="online-sub">不限職類、不限時間，隨時可開始的自學資源</div>
+          <div class="online-sub">不限職類、不限時間,隨時可開始的自學資源</div>
         </div>
       </div>
       <div class="online-list">
@@ -710,12 +1373,12 @@ function renderResult() {
       </div>
     </div>
     <div class="enroll-bar">
-      <div class="count" id="cntText">${recs.length === 0 ? "（無院內課程可勾選）" : "尚未選擇課程"}</div>
+      <div class="count" id="cntText">${recs.length === 0 ? "(無院內課程可勾選)" : "尚未選擇課程"}</div>
       <button class="ghost" id="back">← 修改</button>
       <button class="primary" id="submit">${recs.length === 0 ? "送出回覆" : "勾選後前往填寫報名表 →"}</button>
     </div>
   `;
-  // 單選模式：勾選一門時自動取消其他
+  // 單選模式:勾選一門時自動取消其他
   app.querySelectorAll('input[type=checkbox][data-id]').forEach(cb => {
     cb.addEventListener('change', e => {
       const id = e.target.dataset.id;
@@ -738,7 +1401,7 @@ function renderResult() {
       const txt = document.getElementById('cntText');
       txt.innerHTML = cnt === 0
         ? '尚未選擇課程'
-        : `已選擇：<b style="color:#c2410c">${[...state.enrollments].map(id => recs.find(r=>r.id===id).code).join('')}</b>`;
+        : `已選擇:<b>${[...state.enrollments].map(id => recs.find(r=>r.id===id).code).join('')}</b>`;
     });
   });
   document.getElementById('back').addEventListener('click', () => { state.step--; render(); });
@@ -749,16 +1412,16 @@ function renderResult() {
     ta.value = state.suggestedTopic || "";
     ta.addEventListener('input', e => { state.suggestedTopic = e.target.value; });
   }
-  // 自動儲存：結果頁一載入就靜默送出，避免使用者直接關閉視窗導致資料流失
+  // 自動儲存:結果頁一載入就靜默送出,避免使用者直接關閉視窗導致資料流失
   autoSubmit();
 }
-// 統一組裝 payload，stage 標記是「自動記錄」還是「手動送出」
+// 統一組裝 payload,stage 標記是「自動記錄」還是「手動送出」
 function buildPayload(stage) {
   const a = state.ans;
   const recs = state._recs || [];
   const enrolled = recs.filter(r => state.enrollments.has(r.id));
   const toolText = a.tool === "other"
-    ? `其他：${state.toolOther||""}`
+    ? `其他:${state.toolOther||""}`
     : TOOL_LABEL[a.tool];
   return {
     stage,
@@ -775,13 +1438,13 @@ function buildPayload(stage) {
     suggestedTopic: state.suggestedTopic || "",
     recommendations: recs.length > 0
       ? recs.map(r => `[${TAG_LABEL[r.tag]}] ${r.code}`)
-      : ["（依條件無院內課程推薦，僅顯示免費線上資源）"],
+      : ["(依條件無院內課程推薦,僅顯示免費線上資源)"],
     enrollments:     enrolled.map(r => r.code)
   };
 }
-// 自動儲存進行中的 promise，submitForm 會 await 它以避免競態（同時送 2 筆資料）
+// 自動儲存進行中的 promise,submitForm 會 await 它以避免競態(同時送 2 筆資料)
 let autoSavePromise = null;
-// 自動靜默儲存 — 結果頁一載入就執行，避免使用者直接關閉視窗導致資料流失
+// 自動靜默儲存 — 結果頁一載入就執行,避免使用者直接關閉視窗導致資料流失
 async function autoSubmit() {
   if (state.autoSaved) return autoSavePromise;
   if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR")) return;
@@ -809,8 +1472,8 @@ async function submitForm() {
   const btn = document.getElementById('submit');
   const payload = buildPayload("手動送出");
   if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR")) {
-    showToast("尚未設定 Apps Script 網址。請依說明書部署後，把網址貼到 HTML 的 SCRIPT_URL", "error");
-    console.log("送出內容（測試用）:", payload);
+    showToast("尚未設定 Apps Script 網址。請依說明書部署後,把網址貼到 HTML 的 SCRIPT_URL", "error");
+    console.log("送出內容(測試用):", payload);
     return;
   }
   btn.disabled = true; btn.textContent = "儲存中…";
@@ -833,7 +1496,7 @@ async function submitForm() {
     }
   } catch (err) {
     console.error(err);
-    showToast("儲存失敗：" + err.message, "error");
+    showToast("儲存失敗:" + err.message, "error");
     btn.disabled = false;
     const recs = state._recs || [];
     btn.textContent = recs.length === 0 ? "送出回覆" : "勾選後前往填寫報名表 →";
@@ -846,12 +1509,12 @@ function renderThanks() {
   app.innerHTML = `
     <div class="thanks">
       <div class="check">✓</div>
-      <h2>選課意願已成功送出！</h2>
-      <p>感謝 <b>${escapeHtml(state.info.name)}</b> 的回覆，您的回答已記錄。</p>
+      <h2>選課意願已成功送出!</h2>
+      <p>感謝 <b>${escapeHtml(state.info.name)}</b> 的回覆,您的回答已記錄。</p>
       ${hasEnrollment ? `
         <div class="enroll-cta">
-          <h3>下一步：完成正式報名</h3>
-          <p>請點擊下方按鈕前往正式報名表單，完成最後手續。您勾選了推薦的 <b>${enrolled.length}</b> 門課程：</p>
+          <h3>下一步:完成正式報名</h3>
+          <p>請點擊下方按鈕前往正式報名表單,完成最後手續。您勾選了推薦的 <b>${enrolled.length}</b> 門課程:</p>
           <div class="enroll-list">
             ${enrolled.map(r => `<div class="item">✓ ${r.code}</div>`).join("")}
           </div>
@@ -861,9 +1524,9 @@ function renderThanks() {
         </div>
       ` : `
         <div class="enroll-cta">
-          <h3>感謝您的回饋！</h3>
-          <p>這對我們規劃下次課程非常重要，尤其是您填寫的「希望課程主題」，將是未來規劃新班需求的關鍵依據。</p>
-          <p style="margin-top:10px;font-size:13px;color:#a08773">若想報名現有課程，仍可點擊下方按鈕前往報名表。</p>
+          <h3>感謝您的回饋!</h3>
+          <p>這對我們規劃下次課程非常重要,尤其是您填寫的「希望課程主題」,將是未來規劃新班需求的關鍵依據。</p>
+          <p style="margin-top:10px;font-size:13px;color:var(--ink-5)">若想報名現有課程,仍可點擊下方按鈕前往報名表。</p>
           <a class="enroll-link" href="${REGISTRATION_URL}" target="_blank" rel="noopener">
             前往報名表單
           </a>
